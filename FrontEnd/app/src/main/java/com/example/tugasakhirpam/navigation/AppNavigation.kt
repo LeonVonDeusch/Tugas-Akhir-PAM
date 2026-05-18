@@ -11,12 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.tugasakhirpam.ui.screens.FoundItemDetailScreen
+import com.example.tugasakhirpam.ui.screens.FoundItemFormScreen
+import com.example.tugasakhirpam.ui.screens.FoundItemListScreen
 import com.example.tugasakhirpam.ui.theme.DashboardScreen
 import com.example.tugasakhirpam.ui.theme.LoginScreen
 import com.example.tugasakhirpam.ui.theme.RegisterScreen
 import com.example.tugasakhirpam.viewmodel.AuthCheckState
 import com.example.tugasakhirpam.viewmodel.AuthUiState
 import com.example.tugasakhirpam.viewmodel.AuthViewModel
+import com.example.tugasakhirpam.viewmodel.FoundItemViewModel
 
 @Composable
 fun AppNavigation(
@@ -65,6 +71,12 @@ fun MainNavHost(
     val email = authViewModel.email.collectAsStateWithLifecycle()
     val password = authViewModel.password.collectAsStateWithLifecycle()
     val uiState = authViewModel.uiState.collectAsStateWithLifecycle()
+
+    /*
+     * FoundItemViewModel dibuat di sini (bukan di dalam composable) agar instance-nya
+     * sama dan state tidak hilang saat navigasi antar screen found items.
+     */
+    val foundItemViewModel: FoundItemViewModel = viewModel()
 
 
     LaunchedEffect(uiState.value) {
@@ -124,6 +136,77 @@ fun MainNavHost(
                         popUpTo(Screen.Dashboard.route) {
                             inclusive = true
                         }
+                    }
+                },
+                onFoundItemsClick = {
+                    navController.navigate(Screen.FoundItemList.route)
+                }
+            )
+        }
+
+        // --- Barang Ditemukan: List ---
+        composable(Screen.FoundItemList.route) {
+            val listState = foundItemViewModel.listState.collectAsStateWithLifecycle()
+
+            FoundItemListScreen(
+                listState = listState.value,
+                onItemClick = { id ->
+                    foundItemViewModel.loadFoundItemById(id)
+                    navController.navigate(Screen.FoundItemDetail.createRoute(id))
+                },
+                onAddClick = {
+                    navController.navigate(Screen.FoundItemForm.route)
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // --- Barang Ditemukan: Detail ---
+        composable(
+            route = Screen.FoundItemDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            val detailState = foundItemViewModel.detailState.collectAsStateWithLifecycle()
+            val updateStatusState = foundItemViewModel.updateStatusState.collectAsStateWithLifecycle()
+
+            FoundItemDetailScreen(
+                detailState = detailState.value,
+                updateStatusState = updateStatusState.value,
+                currentUserId = foundItemViewModel.currentUserId,
+                onBackClick = { navController.popBackStack() },
+                onUpdateStatus = { id, status -> foundItemViewModel.updateStatus(id, status) },
+                onResetUpdateStatus = { foundItemViewModel.resetUpdateStatus() }
+            )
+        }
+
+        // --- Barang Ditemukan: Form ---
+        composable(Screen.FoundItemForm.route) {
+            val itemName = foundItemViewModel.itemName.collectAsStateWithLifecycle()
+            val description = foundItemViewModel.description.collectAsStateWithLifecycle()
+            val foundLocation = foundItemViewModel.foundLocation.collectAsStateWithLifecycle()
+            val dateFound = foundItemViewModel.dateFound.collectAsStateWithLifecycle()
+            val selectedCategoryId = foundItemViewModel.selectedCategoryId.collectAsStateWithLifecycle()
+            val categories = foundItemViewModel.categories.collectAsStateWithLifecycle()
+            val formState = foundItemViewModel.formState.collectAsStateWithLifecycle()
+
+            FoundItemFormScreen(
+                itemName = itemName.value,
+                description = description.value,
+                foundLocation = foundLocation.value,
+                dateFound = dateFound.value,
+                selectedCategoryId = selectedCategoryId.value,
+                categories = categories.value,
+                formState = formState.value,
+                onItemNameChange = foundItemViewModel::onItemNameChange,
+                onDescriptionChange = foundItemViewModel::onDescriptionChange,
+                onFoundLocationChange = foundItemViewModel::onFoundLocationChange,
+                onDateFoundChange = foundItemViewModel::onDateFoundChange,
+                onCategorySelected = foundItemViewModel::onCategorySelected,
+                onSubmit = { imageBytes, ext -> foundItemViewModel.createFoundItem(imageBytes, ext) },
+                onBackClick = { navController.popBackStack() },
+                onNavigateAfterSuccess = {
+                    navController.navigate(Screen.FoundItemList.route) {
+                        popUpTo(Screen.FoundItemForm.route) { inclusive = true }
                     }
                 }
             )

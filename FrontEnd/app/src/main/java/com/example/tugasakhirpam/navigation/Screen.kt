@@ -20,5 +20,23 @@ sealed class Screen(val route: String) {
      * Route untuk halaman dashboard.
      */
     object Dashboard : Screen("dashboard")
+
+    /*
+     * Route untuk daftar semua barang ditemukan.
+     */
+    object FoundItemList : Screen("found_item_list")
+
+    /*
+     * Route untuk detail satu barang ditemukan.
+     * {id} adalah parameter ID barang yang diklik.
+     */
+    object FoundItemDetail : Screen("found_item_detail/{id}") {
+        fun createRoute(id: String) = "found_item_detail/$id"
+    }
+
+    /*
+     * Route untuk form lapor barang ditemukan.
+     */
+    object FoundItemForm : Screen("found_item_form")
 }
 

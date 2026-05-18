@@ -9,7 +9,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DashboardScreen(
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onFoundItemsClick: () -> Unit = {}
 ) {
     /*
      * Dashboard sederhana yang muncul setelah user berhasil login.
@@ -36,7 +37,17 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = onLogoutClick
+            onClick = onFoundItemsClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Barang Ditemukan")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onLogoutClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Logout")
         }
