@@ -71,7 +71,16 @@ dependencies {
     // Supabase Auth
     implementation("io.github.jan-tennert.supabase:auth-kt")
 
+    // Supabase Postgrest (operasi database: select, insert, update, delete)
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+
+    // Supabase Storage (upload & download file/gambar)
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+
     // Ktor Android Client
     implementation("io.ktor:ktor-client-android:3.0.3")
+
+    // Coil (menampilkan gambar dari URL di Compose)
+    implementation("io.coil-kt:coil-compose:2.7.0")
 }
 
