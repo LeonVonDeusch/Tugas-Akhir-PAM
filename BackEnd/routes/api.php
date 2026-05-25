@@ -4,16 +4,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CommentController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::prefix('v1')->group(function () {
 
-Route::get(
-    '/comments/{itemId}',
-    [CommentController::class, 'index']
-);
+    // GET semua komentar
+    Route::get('/comments', [CommentController::class, 'index']);
 
-Route::post(
-    '/comments',
-    [CommentController::class, 'store']
-);
+    // GET komentar berdasarkan item
+    Route::get(
+        '/comments/{item_type}/{item_id}',
+        [CommentController::class, 'getByItem']
+    );
+
+    // GET detail komentar
+    Route::get('/comment/{id}', [CommentController::class, 'show']);
+
+    // CREATE komentar
+    Route::post('/comment', [CommentController::class, 'store']);
+
+    // UPDATE komentar
+    Route::put('/comment/{id}', [CommentController::class, 'update']);
+
+    // DELETE komentar
+    Route::delete('/comment/{id}', [CommentController::class, 'destroy']);
+});

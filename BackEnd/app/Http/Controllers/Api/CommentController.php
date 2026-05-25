@@ -2,37 +2,138 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
+use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
     /**
-     * GET COMMENTS
+     * GET ALL COMMENTS
      */
-    public function index($itemId)
+    public function index()
     {
-        $comments = Comment::where('item_id', $itemId)
-            ->get();
+        $comments = Comment::latest('created_at')->get();
 
-        return response()->json($comments);
+        return response()->json([
+            'success' => true,
+            'message' => 'List semua komentar',
+            'data' => $comments
+        ]);
     }
 
     /**
-     * CREATE COMMENT
+     * GET COMMENTS BY ITEM
+     */
+    public function getByItem($item_type, $item_id)
+    {
+        $comments = Comment::where('item_type', $item_type)
+            ->where('item_id', $item_id)
+            ->latest('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Komentar berdasarkan item',
+            'data' => $comments
+        ]);
+    }
+
+    /**
+     * STORE COMMENT
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'item_id' => 'required',
+        $validated = $request->validate([
+            'user_id' => 'required|uuid',
+            'item_id' => 'required|uuid',
             'item_type' => 'required|in:lost,found',
             'content' => 'required|string'
-        ]); 
+        ]);
 
-        $comment = Comment::create($request->all());
+        $comment = Comment::create([
+            'user_id' => $validated['user_id'],
+            'item_id' => $validated['item_id'],
+            'item_type' => $validated['item_type'],
+            'content' => $validated['content']
+        ]);
 
-        return response()->json($comment, 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Komentar berhasil dibuat',
+            'data' => $comment
+        ], 201);
+    }
+
+    /**
+     * SHOW DETAIL COMMENT
+     */
+    public function show($id)
+    {
+        $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Komentar tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $comment
+        ]);
+    }
+
+    /**
+     * UPDATE COMMENT
+     */
+    public function update(Request $request, $id)
+    {
+        $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Komentar tidak ditemukan'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string'
+        ]);
+
+        $comment->update([
+            'content' => $validated['content'],
+            'updated_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Komentar berhasil diupdate',
+            'data' => $comment
+        ]);
+    }
+
+    /**
+     * DELETE COMMENT
+     */
+    public function destroy($id)
+    {
+        $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Komentar tidak ditemukan'
+            ], 404);
+        }
+
+        $comment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Komentar berhasil dihapus'
+        ]);
     }
 }
