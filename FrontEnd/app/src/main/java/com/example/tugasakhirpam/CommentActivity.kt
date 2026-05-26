@@ -57,48 +57,17 @@ class CommentActivity : AppCompatActivity() {
 
         tvReplyTo = findViewById(R.id.tvReplyTo)
 
-//        adapter = CommentAdapter(comments) { comment ->
-//
-//            Toast.makeText(this, "Reply clicked", Toast.LENGTH_SHORT).show()
-//
-//            selectedReplyComment = comment
-//
-//            layoutReply.visibility = View.VISIBLE
-//
-//            tvReplyTo.text = "Reply to: ${comment.content}"
-//        }
-//
-//        recyclerView.layoutManager = LinearLayoutManager(this)
-//        recyclerView.adapter = adapter
-//
-//        getComments()
-//
-//        btnSend.setOnClickListener {
-//            createComment()
-//        }
         adapter = CommentAdapter(
-
-            comments,
-
+            emptyList(),
             onReplyClick = { comment ->
-
                 selectedReplyComment = comment
-
                 layoutReply.visibility = View.VISIBLE
-
                 tvReplyTo.text = "Reply to: ${comment.content}"
             },
-
-            onEditClick = { comment ->
-
-                showEditDialog(comment)
-            },
-
-            onDeleteClick = { comment ->
-
-                deleteComment(comment.id!!)
-            }
+            onEditClick = { comment -> showEditDialog(comment) },
+            onDeleteClick = { comment -> deleteComment(comment.id!!) }
         )
+
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -122,23 +91,32 @@ class CommentActivity : AppCompatActivity() {
 
                     if (response.isSuccessful) {
 
-                        comments.clear()
+                        val responseData = response.body()?.data ?: emptyList()
 
-                        response.body()?.data?.let {
-                            comments.addAll(it)
-                        }
+                        val tree = buildCommentTree(responseData)
+                        val flat = flattenComments(tree)
 
-                        adapter.notifyDataSetChanged()
+                        adapter = CommentAdapter(
+                            flat, // 🔥 PAKAI FLATTEN
+                            onReplyClick = { comment ->
+                                selectedReplyComment = comment
+                                layoutReply.visibility = View.VISIBLE
+                                tvReplyTo.text = "Reply to: ${comment.content}"
+                            },
+                            onEditClick = { comment ->
+                                showEditDialog(comment)
+                            },
+                            onDeleteClick = { comment ->
+                                deleteComment(comment.id!!)
+                            }
+                        )
+
+                        recyclerView.adapter = adapter
                     }
                 }
 
                 override fun onFailure(call: Call<CommentResponse>, t: Throwable) {
-
-                    Toast.makeText(
-                        this@CommentActivity,
-                        t.message,
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this@CommentActivity, t.message, Toast.LENGTH_LONG).show()
                 }
             })
     }
@@ -307,4 +285,44 @@ class CommentActivity : AppCompatActivity() {
                 }
             })
     }
+}
+
+fun buildCommentTree(flatList: List<Comment>): List<Comment> {
+
+    val commentMap = mutableMapOf<String?, Comment>()
+    val rootComments = mutableListOf<Comment>()
+
+    flatList.forEach {
+        commentMap[it.id] = it
+        it.children = mutableListOf()
+    }
+
+    flatList.forEach { comment ->
+        if (comment.parent_id == null) {
+            rootComments.add(comment)
+        } else {
+            val parent = commentMap[comment.parent_id]
+            parent?.children?.add(comment)
+        }
+    }
+
+    return rootComments
+}
+
+fun flattenComments(
+    comments: List<Comment>,
+    level: Int = 0
+): List<Pair<Comment, Int>> {
+
+    val result = mutableListOf<Pair<Comment, Int>>()
+
+    for (comment in comments) {
+        result.add(Pair(comment, level))
+
+        if (comment.children.isNotEmpty()) {
+            result.addAll(flattenComments(comment.children, level + 1))
+        }
+    }
+
+    return result
 }
