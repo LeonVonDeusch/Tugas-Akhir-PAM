@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirpam.R
 import com.example.tugasakhirpam.model.Comment
+import kotlin.collections.get
 
 class CommentAdapter(
     private val items: List<Pair<Comment, Int>>,
@@ -30,6 +31,8 @@ class CommentAdapter(
         val tvReplyTo: TextView? = view.findViewById(R.id.tvReplyTo)
     }
 
+    fun getItem(position: Int): Pair<Comment, Int> = items[position]
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layout = if (viewType == TYPE_COMMENT) {
             R.layout.item_comment
@@ -44,6 +47,16 @@ class CommentAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val (comment, level) = items[position]
+
+        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        if (level > 0) {
+            params.marginStart = (level * 48).dpToPx(holder.itemView.context)
+            params.marginEnd = 8.dpToPx(holder.itemView.context)
+        } else {
+            params.marginStart = 8.dpToPx(holder.itemView.context)
+            params.marginEnd = 8.dpToPx(holder.itemView.context)
+        }
+        holder.itemView.layoutParams = params
 
         holder.tvContent.text = comment.content
         holder.tvDate.text = comment.created_at ?: ""
@@ -70,3 +83,9 @@ class CommentAdapter(
         }
     }
 }
+
+// Taruh di luar class CommentAdapter, di bagian bawah file
+fun Int.dpToPx(context: android.content.Context): Int {
+    return (this * context.resources.displayMetrics.density).toInt()
+}
+

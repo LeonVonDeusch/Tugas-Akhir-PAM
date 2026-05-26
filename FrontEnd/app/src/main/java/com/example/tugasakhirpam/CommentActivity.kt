@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirpam.adapter.CommentAdapter
+import com.example.tugasakhirpam.adapter.ThreadLineDecoration
 import com.example.tugasakhirpam.model.Comment
 import com.example.tugasakhirpam.model.CommentResponse
 import com.example.tugasakhirpam.model.GeneralResponse
@@ -70,6 +71,7 @@ class CommentActivity : AppCompatActivity() {
 
 
         recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.addItemDecoration(ThreadLineDecoration(this))
         recyclerView.adapter = adapter
 
         getComments()
@@ -93,11 +95,15 @@ class CommentActivity : AppCompatActivity() {
 
                         val responseData = response.body()?.data ?: emptyList()
 
+                        // 🔥 BUILD TREE
                         val tree = buildCommentTree(responseData)
+
+                        // 🔥 FLATTEN + LEVEL
                         val flat = flattenComments(tree)
 
+                        // 🔥 SET ADAPTER
                         adapter = CommentAdapter(
-                            flat, // 🔥 PAKAI FLATTEN
+                            flat,
                             onReplyClick = { comment ->
                                 selectedReplyComment = comment
                                 layoutReply.visibility = View.VISIBLE
@@ -107,7 +113,7 @@ class CommentActivity : AppCompatActivity() {
                                 showEditDialog(comment)
                             },
                             onDeleteClick = { comment ->
-                                deleteComment(comment.id!!)
+                                comment.id?.let { deleteComment(it) }
                             }
                         )
 
@@ -289,11 +295,13 @@ class CommentActivity : AppCompatActivity() {
 
 fun buildCommentTree(flatList: List<Comment>): List<Comment> {
 
-    val commentMap = mutableMapOf<String?, Comment>()
+    val commentMap = mutableMapOf<String, Comment>()
     val rootComments = mutableListOf<Comment>()
 
     flatList.forEach {
-        commentMap[it.id] = it
+        if (it.id != null) {
+            commentMap[it.id] = it
+        }
         it.children = mutableListOf()
     }
 
@@ -302,7 +310,12 @@ fun buildCommentTree(flatList: List<Comment>): List<Comment> {
             rootComments.add(comment)
         } else {
             val parent = commentMap[comment.parent_id]
-            parent?.children?.add(comment)
+
+            if (parent != null) {
+                parent.children.add(comment)
+            } else {
+                rootComments.add(comment) // fallback
+            }
         }
     }
 
@@ -317,6 +330,7 @@ fun flattenComments(
     val result = mutableListOf<Pair<Comment, Int>>()
 
     for (comment in comments) {
+
         result.add(Pair(comment, level))
 
         if (comment.children.isNotEmpty()) {
