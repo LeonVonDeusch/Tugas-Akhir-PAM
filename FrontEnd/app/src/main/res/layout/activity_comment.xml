@@ -1,28 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:focusable="true"
+    android:focusableInTouchMode="true">>
 
-    <EditText
-        android:id="@+id/etComment"
+    <!-- Header -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tulis komentar" />
+        android:text="FoundIt"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="16dp"/>
 
-    <Button
-        android:id="@+id/btnSend"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Kirim" />
-
+    <!-- Comment List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerComments"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="12dp" />
+        android:layout_weight="1"/>
+
+    <!-- Reply Preview -->
+    <LinearLayout
+        android:id="@+id/layoutReply"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvReplyTo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Reply to:"
+            android:textStyle="bold"/>
+
+        <ImageButton
+            android:id="@+id/btnCloseReply"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+    </LinearLayout>
+
+    <!-- Input -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <EditText
+            android:id="@+id/etComment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Tulis komentar"
+            android:inputType="textMultiLine"
+            android:maxLines="4"
+            android:background="@android:drawable/edit_text"/>
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:focusable="false"
+            android:focusableInTouchMode="false"/>
+    </LinearLayout>
 
 </LinearLayout>

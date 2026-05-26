@@ -6,5 +6,7 @@ data class Comment(
     val item_id: String,
     val item_type: String,
     val content: String,
+    val parent_id: String? = null,
+    val parent: ParentComment? = null,
     val created_at: String? = null
 )

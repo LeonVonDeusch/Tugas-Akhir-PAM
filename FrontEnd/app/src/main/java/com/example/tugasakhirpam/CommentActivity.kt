@@ -1,8 +1,11 @@
 package com.example.tugasakhirpam
 
 import android.os.Bundle
-import android.widget.Button
+import android.view.View
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,11 +23,18 @@ class CommentActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var etComment: EditText
-    private lateinit var btnSend: Button
+    private lateinit var btnSend: ImageButton
 
+    private lateinit var btnCloseReply: ImageButton
     private val comments = mutableListOf<Comment>()
 
     private lateinit var adapter: CommentAdapter
+
+    private var selectedReplyComment: Comment? = null
+
+    private lateinit var layoutReply: LinearLayout
+
+    private lateinit var tvReplyTo: TextView
 
     // contoh item
     private val itemId = "660e8400-e29b-41d4-a716-446655440111"
@@ -37,8 +47,22 @@ class CommentActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recyclerComments)
         etComment = findViewById(R.id.etComment)
         btnSend = findViewById(R.id.btnSend)
+        btnCloseReply = findViewById(R.id.btnCloseReply)
 
-        adapter = CommentAdapter(comments)
+        layoutReply = findViewById(R.id.layoutReply)
+
+        tvReplyTo = findViewById(R.id.tvReplyTo)
+
+        adapter = CommentAdapter(comments) { comment ->
+
+            Toast.makeText(this, "Reply clicked", Toast.LENGTH_SHORT).show()
+
+            selectedReplyComment = comment
+
+            layoutReply.visibility = View.VISIBLE
+
+            tvReplyTo.text = "Reply to: ${comment.content}"
+        }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -93,10 +117,16 @@ class CommentActivity : AppCompatActivity() {
         }
 
         val comment = Comment(
+
             user_id = "550e8400-e29b-41d4-a716-446655440000",
+
             item_id = itemId,
+
             item_type = itemType,
-            content = content
+
+            content = content,
+
+            parent_id = selectedReplyComment?.id
         )
 
         RetrofitClient.api.createComment(comment)
@@ -112,6 +142,19 @@ class CommentActivity : AppCompatActivity() {
                         etComment.text.clear()
 
                         getComments()
+
+                        selectedReplyComment = null
+
+                        layoutReply.visibility = View.GONE
+
+                        tvReplyTo.text = ""
+
+                        btnCloseReply.setOnClickListener {
+
+                            selectedReplyComment = null
+
+                            layoutReply.visibility = View.GONE
+                        }
 
                         Toast.makeText(
                             this@CommentActivity,

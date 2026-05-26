@@ -5,8 +5,10 @@ import com.example.tugasakhirpam.model.CommentResponse
 import com.example.tugasakhirpam.model.SingleCommentResponse
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ApiService {
@@ -21,4 +23,15 @@ interface ApiService {
     fun createComment(
         @Body comment: Comment
     ): Call<SingleCommentResponse>
+
+    @PUT("comments/{id}")
+    fun updateComment(
+        @Path("id") id: String,
+        @Body request: UpdateCommentRequest
+    ): Call<SingleCommentResponse>
+
+    @DELETE("comments/{id}")
+    fun deleteComment(
+        @Path("id") id: String
+    ): Call<GeneralResponse>
 }

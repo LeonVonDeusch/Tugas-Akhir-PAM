@@ -27,10 +27,11 @@ class CommentController extends Controller
      */
     public function getByItem($item_type, $item_id)
     {
-        $comments = Comment::where('item_type', $item_type)
-            ->where('item_id', $item_id)
-            ->latest('created_at')
-            ->get();
+        $comments = Comment::with('parent')
+        ->where('item_type', $item_type)
+        ->where('item_id', $item_id)
+        ->latest('created_at')
+        ->get();
 
         return response()->json([
             'success' => true,
@@ -48,14 +49,18 @@ class CommentController extends Controller
             'user_id' => 'required|uuid',
             'item_id' => 'required|uuid',
             'item_type' => 'required|in:lost,found',
-            'content' => 'required|string'
+            'content' => 'required|string',
+            'parent_id' => 'nullable|uuid|exists:comments,id' // Optional, untuk komentar balasan
         ]);
 
+        $comments = Comment::with('parent')->get();
+        
         $comment = Comment::create([
             'user_id' => $validated['user_id'],
             'item_id' => $validated['item_id'],
             'item_type' => $validated['item_type'],
-            'content' => $validated['content']
+            'content' => $validated['content'],
+            'parent_id' => $validated['parent_id'] ?? null // Optional, untuk komentar balasan
         ]);
 
         return response()->json([
