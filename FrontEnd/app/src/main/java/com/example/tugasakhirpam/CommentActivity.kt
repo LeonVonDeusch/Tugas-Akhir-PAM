@@ -1,19 +1,23 @@
 package com.example.tugasakhirpam
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirpam.adapter.CommentAdapter
 import com.example.tugasakhirpam.model.Comment
 import com.example.tugasakhirpam.model.CommentResponse
+import com.example.tugasakhirpam.model.GeneralResponse
 import com.example.tugasakhirpam.model.SingleCommentResponse
+import com.example.tugasakhirpam.model.UpdateCommentRequest
 import com.example.tugasakhirpam.network.RetrofitClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -53,16 +57,48 @@ class CommentActivity : AppCompatActivity() {
 
         tvReplyTo = findViewById(R.id.tvReplyTo)
 
-        adapter = CommentAdapter(comments) { comment ->
+//        adapter = CommentAdapter(comments) { comment ->
+//
+//            Toast.makeText(this, "Reply clicked", Toast.LENGTH_SHORT).show()
+//
+//            selectedReplyComment = comment
+//
+//            layoutReply.visibility = View.VISIBLE
+//
+//            tvReplyTo.text = "Reply to: ${comment.content}"
+//        }
+//
+//        recyclerView.layoutManager = LinearLayoutManager(this)
+//        recyclerView.adapter = adapter
+//
+//        getComments()
+//
+//        btnSend.setOnClickListener {
+//            createComment()
+//        }
+        adapter = CommentAdapter(
 
-            Toast.makeText(this, "Reply clicked", Toast.LENGTH_SHORT).show()
+            comments,
 
-            selectedReplyComment = comment
+            onReplyClick = { comment ->
 
-            layoutReply.visibility = View.VISIBLE
+                selectedReplyComment = comment
 
-            tvReplyTo.text = "Reply to: ${comment.content}"
-        }
+                layoutReply.visibility = View.VISIBLE
+
+                tvReplyTo.text = "Reply to: ${comment.content}"
+            },
+
+            onEditClick = { comment ->
+
+                showEditDialog(comment)
+            },
+
+            onDeleteClick = { comment ->
+
+                deleteComment(comment.id!!)
+            }
+        )
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -173,6 +209,100 @@ class CommentActivity : AppCompatActivity() {
                         this@CommentActivity,
                         t.message,
                         Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        )
+    }
+
+    private fun deleteComment(id: String) {
+
+        RetrofitClient.api.deleteComment(id)
+            .enqueue(object : Callback<GeneralResponse> {
+
+                override fun onResponse(
+                    call: Call<GeneralResponse>,
+                    response: Response<GeneralResponse>
+                ) {
+
+                    Log.d("DELETE", "Response: ${response.body()}")
+
+                    if (response.isSuccessful) {
+
+                        Toast.makeText(
+                            this@CommentActivity,
+                            "Komentar dihapus",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        getComments()
+                    }
+                }
+
+                override fun onFailure(call: Call<GeneralResponse>, t: Throwable) {
+
+                    Log.e("DELETE", t.message.toString())
+                }
+            })
+    }
+
+    private fun showEditDialog(comment: Comment) {
+
+        val editText = EditText(this)
+        editText.setText(comment.content)
+
+        AlertDialog.Builder(this)
+            .setTitle("Edit Komentar")
+            .setView(editText)
+
+            .setPositiveButton("Update") { _, _ ->
+
+                val newContent = editText.text.toString()
+
+                updateComment(
+                    comment.id!!,
+                    editText.text.toString()
+                )
+            }
+
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun updateComment(id: String, content: String) {
+
+        val request = UpdateCommentRequest(content)
+
+        RetrofitClient.api.updateComment(id, request)
+            .enqueue(object : Callback<SingleCommentResponse> {
+
+                override fun onResponse(
+                    call: Call<SingleCommentResponse>,
+                    response: Response<SingleCommentResponse>
+                ) {
+
+                    Log.d("UPDATE", "Response: ${response.body()}")
+
+                    if (response.isSuccessful) {
+
+                        Toast.makeText(
+                            this@CommentActivity,
+                            "Update berhasil",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        getComments() // refresh data
+                    }
+                }
+
+                override fun onFailure(call: Call<SingleCommentResponse>, t: Throwable) {
+
+                    Log.e("UPDATE", t.message.toString())
+
+                    Toast.makeText(
+                        this@CommentActivity,
+                        "Gagal update",
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
             })

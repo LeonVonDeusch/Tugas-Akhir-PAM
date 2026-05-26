@@ -1,4 +1,5 @@
 package com.example.tugasakhirpam.model
 
-class UpdateCommentRequest {
-}
+data class UpdateCommentRequest(
+    val content: String
+)

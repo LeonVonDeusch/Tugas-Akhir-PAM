@@ -2,9 +2,11 @@
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#F5F6FA"
     android:focusable="true"
     android:focusableInTouchMode="true">>
 
@@ -15,6 +17,7 @@
         android:text="FoundIt"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="#333"
         android:padding="16dp"/>
 
     <!-- Comment List -->
@@ -30,7 +33,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
+        android:padding="10dp"
+        android:background="#E8EAF6"
         android:visibility="gone">
 
         <TextView
@@ -38,13 +42,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Reply to:"
+            android:textColor="#3F51B5"
             android:textStyle="bold"/>
 
         <ImageButton
             android:id="@+id/btnCloseReply"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_close_clear_cancel"/>
     </LinearLayout>
 
@@ -53,25 +58,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="10dp"
+        android:background="#FFFFFF"
+        android:elevation="6dp">
 
         <EditText
             android:id="@+id/etComment"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Tulis komentar"
-            android:inputType="textMultiLine"
-            android:maxLines="4"
-            android:background="@android:drawable/edit_text"/>
+            android:hint="Tulis komentar..."
+            android:background="@android:color/transparent"
+            android:padding="10dp"
+            android:textSize="14sp"/>
 
         <ImageButton
             android:id="@+id/btnSend"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@android:drawable/ic_menu_send"
-            android:focusable="false"
-            android:focusableInTouchMode="false"/>
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:backgroundTint="#5C6BC0"
+            android:src="@android:drawable/ic_menu_send"/>
     </LinearLayout>
 
 </LinearLayout>
