@@ -8,10 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirpam.R
 import com.example.tugasakhirpam.model.Comment
-import kotlin.collections.get
 
 class CommentAdapter(
-    private val items: List<Pair<Comment, Int>>,
+    private var items: List<Pair<Comment, Int>> = emptyList(),
     private val onReplyClick: (Comment) -> Unit,
     private val onEditClick: (Comment) -> Unit,
     private val onDeleteClick: (Comment) -> Unit
@@ -31,7 +30,16 @@ class CommentAdapter(
         val tvReplyTo: TextView? = view.findViewById(R.id.tvReplyTo)
     }
 
+    /**
+     * Dipanggil dari Activity saat ViewModel mengirim data baru.
+     * Menggantikan pola lama yang membuat ulang seluruh adapter.
+     */
     fun getItem(position: Int): Pair<Comment, Int> = items[position]
+
+    fun updateComments(newItems: List<Pair<Comment, Int>>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layout = if (viewType == TYPE_COMMENT) {
@@ -65,7 +73,6 @@ class CommentAdapter(
         holder.btnEdit.setOnClickListener { onEditClick(comment) }
         holder.btnDelete.setOnClickListener { onDeleteClick(comment) }
 
-        // Tampilkan "Reply to" hanya di item reply
         if (comment.parent != null) {
             holder.tvReplyTo?.visibility = View.VISIBLE
             holder.tvReplyTo?.text = "Reply to: ${comment.parent.content}"
@@ -75,17 +82,10 @@ class CommentAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        // ✅ Fix: akses .first karena items bertipe List<Pair<Comment, Int>>
-        return if (items[position].first.parent_id == null) {
-            TYPE_COMMENT
-        } else {
-            TYPE_REPLY
-        }
+        return if (items[position].first.parent_id == null) TYPE_COMMENT else TYPE_REPLY
     }
 }
 
-// Taruh di luar class CommentAdapter, di bagian bawah file
 fun Int.dpToPx(context: android.content.Context): Int {
     return (this * context.resources.displayMetrics.density).toInt()
 }
-

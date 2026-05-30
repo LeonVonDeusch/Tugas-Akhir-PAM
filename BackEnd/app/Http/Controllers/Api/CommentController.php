@@ -48,7 +48,7 @@ class CommentController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|uuid',
             'item_id' => 'required|uuid',
-            'item_type' => 'required|in:lost,found',
+            'item_type' => 'required|in:lost,found,na',
             'content' => 'required|string',
             'parent_id' => 'nullable|uuid|exists:comments,id' // Optional, untuk komentar balasan
         ]);

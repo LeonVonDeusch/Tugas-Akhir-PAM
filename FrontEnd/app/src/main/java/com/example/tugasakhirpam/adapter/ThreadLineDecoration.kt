@@ -28,7 +28,8 @@ class ThreadLineDecoration(context: Context) : RecyclerView.ItemDecoration() {
             val child = parent.getChildAt(i)
             val position = parent.getChildAdapterPosition(child)
             if (position < 0) continue
-            val (_, level) = adapter.getItem(position)
+            val item: Pair<*, Int> = adapter.getItem(position)
+            val level: Int = item.second
             visibleItems.add(VisibleItem(position, level, child.top, child.bottom))
         }
 

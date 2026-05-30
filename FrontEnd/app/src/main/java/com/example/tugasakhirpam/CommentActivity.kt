@@ -1,342 +1,210 @@
 package com.example.tugasakhirpam
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tugasakhirpam.adapter.CommentAdapter
 import com.example.tugasakhirpam.adapter.ThreadLineDecoration
+//import com.example.tugasakhirpam.adapter.ThreadLineDecoration
 import com.example.tugasakhirpam.model.Comment
-import com.example.tugasakhirpam.model.CommentResponse
-import com.example.tugasakhirpam.model.GeneralResponse
-import com.example.tugasakhirpam.model.SingleCommentResponse
-import com.example.tugasakhirpam.model.UpdateCommentRequest
-import com.example.tugasakhirpam.network.RetrofitClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.tugasakhirpam.viewmodel.CommentUiState
+import com.example.tugasakhirpam.viewmodel.CommentViewModel
+import kotlinx.coroutines.launch
 
+/**
+ * CommentActivity — hanya bertanggung jawab untuk:
+ * 1. Menampilkan data yang sudah disiapkan ViewModel
+ * 2. Meneruskan aksi user ke ViewModel
+ * 3. Menampilkan feedback visual (loading, toast, dialog)
+ *
+ * Tidak ada lagi: API call, logika bisnis, atau transformasi data di sini.
+ */
 class CommentActivity : AppCompatActivity() {
+
+    // ── View bindings ──────────────────────────────────────────────────────────
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var etComment: EditText
     private lateinit var btnSend: ImageButton
-
     private lateinit var btnCloseReply: ImageButton
-    private val comments = mutableListOf<Comment>()
+    private lateinit var layoutReply: LinearLayout
+    private lateinit var tvReplyTo: TextView
 
     private lateinit var adapter: CommentAdapter
 
-    private var selectedReplyComment: Comment? = null
+    // ── ViewModel ──────────────────────────────────────────────────────────────
 
-    private lateinit var layoutReply: LinearLayout
+    // viewModels() adalah delegate dari Activity KTX — otomatis menangani lifecycle
+    private val viewModel: CommentViewModel by viewModels()
 
-    private lateinit var tvReplyTo: TextView
+    // ── Konstanta item (idealnya dikirim lewat Intent) ─────────────────────────
 
-    // contoh item
     private val itemId = "660e8400-e29b-41d4-a716-446655440111"
-    private val itemType = "lost"
+    private val itemType = "na"
+    private val currentUserId = "550e8400-e29b-41d4-a716-446655440001"
+
+    // ── Lifecycle ──────────────────────────────────────────────────────────────
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comment)
 
+        bindViews()
+        setupAdapter()
+        setupListeners()
+        observeViewModel()
+
+        // Inisialisasi ViewModel dengan data item
+        viewModel.init(itemType, itemId)
+    }
+
+    // ── Setup ──────────────────────────────────────────────────────────────────
+
+    private fun bindViews() {
         recyclerView = findViewById(R.id.recyclerComments)
         etComment = findViewById(R.id.etComment)
         btnSend = findViewById(R.id.btnSend)
         btnCloseReply = findViewById(R.id.btnCloseReply)
-
         layoutReply = findViewById(R.id.layoutReply)
-
         tvReplyTo = findViewById(R.id.tvReplyTo)
+    }
 
+    private fun setupAdapter() {
         adapter = CommentAdapter(
-            emptyList(),
+            items = emptyList(),
             onReplyClick = { comment ->
-                selectedReplyComment = comment
-                layoutReply.visibility = View.VISIBLE
-                tvReplyTo.text = "Reply to: ${comment.content}"
+                // Teruskan ke ViewModel, bukan diurus di sini
+                viewModel.setReplyTarget(comment)
             },
-            onEditClick = { comment -> showEditDialog(comment) },
-            onDeleteClick = { comment -> deleteComment(comment.id!!) }
+            onEditClick = { comment ->
+                showEditDialog(comment)
+            },
+            onDeleteClick = { comment ->
+                comment.id?.let { viewModel.deleteComment(it) }
+            }
         )
-
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.addItemDecoration(ThreadLineDecoration(this))
         recyclerView.adapter = adapter
+    }
 
-        getComments()
-
+    private fun setupListeners() {
         btnSend.setOnClickListener {
-            createComment()
+            val content = etComment.text.toString()
+            viewModel.createComment(currentUserId, content)
+            etComment.text.clear()
+        }
+
+        btnCloseReply.setOnClickListener {
+            viewModel.clearReplyTarget()
         }
     }
 
-    private fun getComments() {
+    // ── Observasi State dari ViewModel ─────────────────────────────────────────
 
-        RetrofitClient.api.getComments(itemType, itemId)
-            .enqueue(object : Callback<CommentResponse> {
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            // repeatOnLifecycle memastikan collect berhenti saat Activity di-pause
+            // dan resume lagi saat Activity kembali aktif — lebih aman dari lifecycleScope biasa
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                override fun onResponse(
-                    call: Call<CommentResponse>,
-                    response: Response<CommentResponse>
-                ) {
-
-                    if (response.isSuccessful) {
-
-                        val responseData = response.body()?.data ?: emptyList()
-
-                        // 🔥 BUILD TREE
-                        val tree = buildCommentTree(responseData)
-
-                        // 🔥 FLATTEN + LEVEL
-                        val flat = flattenComments(tree)
-
-                        // 🔥 SET ADAPTER
-                        adapter = CommentAdapter(
-                            flat,
-                            onReplyClick = { comment ->
-                                selectedReplyComment = comment
-                                layoutReply.visibility = View.VISIBLE
-                                tvReplyTo.text = "Reply to: ${comment.content}"
-                            },
-                            onEditClick = { comment ->
-                                showEditDialog(comment)
-                            },
-                            onDeleteClick = { comment ->
-                                comment.id?.let { deleteComment(it) }
-                            }
-                        )
-
-                        recyclerView.adapter = adapter
+                // Observasi state utama UI
+                launch {
+                    viewModel.uiState.collect { state ->
+                        handleUiState(state)
                     }
                 }
 
-                override fun onFailure(call: Call<CommentResponse>, t: Throwable) {
-                    Toast.makeText(this@CommentActivity, t.message, Toast.LENGTH_LONG).show()
-                }
-            })
-    }
-
-    private fun createComment() {
-
-        val content = etComment.text.toString()
-
-        if (content.isEmpty()) {
-            etComment.error = "Komentar wajib diisi"
-            return
-        }
-
-        val comment = Comment(
-
-            user_id = "550e8400-e29b-41d4-a716-446655440000",
-
-            item_id = itemId,
-
-            item_type = itemType,
-
-            content = content,
-
-            parent_id = selectedReplyComment?.id
-        )
-
-        RetrofitClient.api.createComment(comment)
-            .enqueue(object : Callback<SingleCommentResponse> {
-
-                override fun onResponse(
-                    call: Call<SingleCommentResponse>,
-                    response: Response<SingleCommentResponse>
-                ) {
-
-                    if (response.isSuccessful) {
-
-                        etComment.text.clear()
-
-                        getComments()
-
-                        selectedReplyComment = null
-
-                        layoutReply.visibility = View.GONE
-
-                        tvReplyTo.text = ""
-
-                        btnCloseReply.setOnClickListener {
-
-                            selectedReplyComment = null
-
-                            layoutReply.visibility = View.GONE
-                        }
-
-                        Toast.makeText(
-                            this@CommentActivity,
-                            "Komentar berhasil dikirim",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                // Observasi target reply secara terpisah
+                launch {
+                    viewModel.replyTarget.collect { replyComment ->
+                        updateReplyBanner(replyComment)
                     }
-                }
-
-                override fun onFailure(
-                    call: Call<SingleCommentResponse>,
-                    t: Throwable
-                ) {
-
-                    Toast.makeText(
-                        this@CommentActivity,
-                        t.message,
-                        Toast.LENGTH_LONG
-                    ).show()
                 }
             }
-        )
+        }
     }
 
-    private fun deleteComment(id: String) {
+    /**
+     * Semua perubahan state UI ditangani di satu tempat.
+     * Activity tidak perlu tahu bagaimana data diproses — cukup tampilkan hasilnya.
+     */
+    private fun handleUiState(state: CommentUiState) {
+        when (state) {
+            is CommentUiState.Idle -> {
+                // Tidak ada aksi
+            }
 
-        RetrofitClient.api.deleteComment(id)
-            .enqueue(object : Callback<GeneralResponse> {
+            is CommentUiState.Loading -> {
+                // TODO: Tampilkan ProgressBar jika ada di layout
+                // progressBar.visibility = View.VISIBLE
+            }
 
-                override fun onResponse(
-                    call: Call<GeneralResponse>,
-                    response: Response<GeneralResponse>
-                ) {
+            is CommentUiState.Success -> {
+                // progressBar.visibility = View.GONE
+                adapter.updateComments(state.comments)
+            }
 
-                    Log.d("DELETE", "Response: ${response.body()}")
+            is CommentUiState.ActionSuccess -> {
+                // progressBar.visibility = View.GONE
+                Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
 
-                    if (response.isSuccessful) {
-
-                        Toast.makeText(
-                            this@CommentActivity,
-                            "Komentar dihapus",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        getComments()
-                    }
-                }
-
-                override fun onFailure(call: Call<GeneralResponse>, t: Throwable) {
-
-                    Log.e("DELETE", t.message.toString())
-                }
-            })
+            is CommentUiState.Error -> {
+                // progressBar.visibility = View.GONE
+                Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+            }
+        }
     }
 
+    /**
+     * Menampilkan atau menyembunyikan banner "Reply to: ..." berdasarkan state.
+     */
+    private fun updateReplyBanner(replyComment: Comment?) {
+        if (replyComment != null) {
+            layoutReply.visibility = View.VISIBLE
+            tvReplyTo.text = "Reply to: ${replyComment.content}"
+        } else {
+            layoutReply.visibility = View.GONE
+            tvReplyTo.text = ""
+        }
+    }
+
+    // ── Dialog ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Dialog edit komentar.
+     * Activity boleh menampilkan dialog karena itu bagian dari UI,
+     * tapi aksi "update" tetap diteruskan ke ViewModel.
+     */
     private fun showEditDialog(comment: Comment) {
-
-        val editText = EditText(this)
-        editText.setText(comment.content)
+        val editText = EditText(this).apply {
+            setText(comment.content)
+        }
 
         AlertDialog.Builder(this)
             .setTitle("Edit Komentar")
             .setView(editText)
-
             .setPositiveButton("Update") { _, _ ->
-
                 val newContent = editText.text.toString()
-
-                updateComment(
-                    comment.id!!,
-                    editText.text.toString()
-                )
+                comment.id?.let { viewModel.updateComment(it, newContent) }
             }
-
             .setNegativeButton("Batal", null)
             .show()
     }
-
-    private fun updateComment(id: String, content: String) {
-
-        val request = UpdateCommentRequest(content)
-
-        RetrofitClient.api.updateComment(id, request)
-            .enqueue(object : Callback<SingleCommentResponse> {
-
-                override fun onResponse(
-                    call: Call<SingleCommentResponse>,
-                    response: Response<SingleCommentResponse>
-                ) {
-
-                    Log.d("UPDATE", "Response: ${response.body()}")
-
-                    if (response.isSuccessful) {
-
-                        Toast.makeText(
-                            this@CommentActivity,
-                            "Update berhasil",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        getComments() // refresh data
-                    }
-                }
-
-                override fun onFailure(call: Call<SingleCommentResponse>, t: Throwable) {
-
-                    Log.e("UPDATE", t.message.toString())
-
-                    Toast.makeText(
-                        this@CommentActivity,
-                        "Gagal update",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
-    }
-}
-
-fun buildCommentTree(flatList: List<Comment>): List<Comment> {
-
-    val commentMap = mutableMapOf<String, Comment>()
-    val rootComments = mutableListOf<Comment>()
-
-    flatList.forEach {
-        if (it.id != null) {
-            commentMap[it.id] = it
-        }
-        it.children = mutableListOf()
-    }
-
-    flatList.forEach { comment ->
-        if (comment.parent_id == null) {
-            rootComments.add(comment)
-        } else {
-            val parent = commentMap[comment.parent_id]
-
-            if (parent != null) {
-                parent.children.add(comment)
-            } else {
-                rootComments.add(comment) // fallback
-            }
-        }
-    }
-
-    return rootComments
-}
-
-fun flattenComments(
-    comments: List<Comment>,
-    level: Int = 0
-): List<Pair<Comment, Int>> {
-
-    val result = mutableListOf<Pair<Comment, Int>>()
-
-    for (comment in comments) {
-
-        result.add(Pair(comment, level))
-
-        if (comment.children.isNotEmpty()) {
-            result.addAll(flattenComments(comment.children, level + 1))
-        }
-    }
-
-    return result
 }
