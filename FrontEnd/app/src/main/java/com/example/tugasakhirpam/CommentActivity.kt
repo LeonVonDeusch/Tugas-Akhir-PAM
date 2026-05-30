@@ -52,7 +52,7 @@ class CommentActivity : AppCompatActivity() {
     // ── Konstanta item (idealnya dikirim lewat Intent) ─────────────────────────
 
     private val itemId = "660e8400-e29b-41d4-a716-446655440111"
-    private val itemType = "na"
+    private val itemType = "lost"
     private val currentUserId = "550e8400-e29b-41d4-a716-446655440001"
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
