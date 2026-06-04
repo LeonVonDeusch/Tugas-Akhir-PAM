@@ -20,6 +20,10 @@ import com.example.tugasakhirpam.data.LostItem
 import com.example.tugasakhirpam.viewmodel.ActionState
 import com.example.tugasakhirpam.viewmodel.LostItemUiState
 import com.example.tugasakhirpam.viewmodel.LostItemViewModel
+import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +69,7 @@ fun LostItemRow(item: LostItem, onClick: () -> Unit) {
             }
             Text(text = item.itemName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(text = "Lokasi: ${item.lastSeenLocation} | Tgl: ${item.dateLost}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Status: ${item.status.uppercase()}", color = if(item.status == "belum") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+            Text(text = "Status: ${item.status.uppercase()}", color = if(item.status.contains("belum", ignoreCase = true)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -107,7 +111,13 @@ fun LostItemFormScreen(viewModel: LostItemViewModel, onNavigateBack: () -> Unit)
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Lapor Barang Hilang", fontWeight = FontWeight.Bold) }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Lapor Barang Hilang", fontWeight = FontWeight.Bold) }, navigationIcon = {
+        IconButton(onClick = onNavigateBack) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+        }
+    })
+    })
+    { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedTextField(value = itemName, onValueChange = { viewModel.itemNameInput.value = it }, label = { Text("Nama Barang") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = location, onValueChange = { viewModel.locationInput.value = it }, label = { Text("Lokasi Terakhir") }, modifier = Modifier.fillMaxWidth())
@@ -146,19 +156,39 @@ fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigat
 
     LaunchedEffect(itemId) { viewModel.loadLostItemDetail(itemId) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Detail Laporan") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Detail Laporan") }, navigationIcon = {
+        IconButton(onClick = onNavigateBack) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+        }
+    }) }) { padding ->
         when (uiState) {
             is LostItemUiState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(padding))
             is LostItemUiState.SuccessDetail -> {
                 val item = (uiState as LostItemUiState.SuccessDetail).item
-                Column(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.padding(padding).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
 
                     item.imageUrl?.let { url ->
-                        AsyncImage(model = url, contentDescription = "Foto Detail", modifier = Modifier.fillMaxWidth().height(250.dp).padding(bottom = 16.dp))
+                        AsyncImage(
+                            model = url,
+                            contentDescription = "Foto Detail",
+                            modifier = Modifier.fillMaxWidth().height(250.dp)
+                                .padding(bottom = 16.dp)
+                        )
                     }
 
-                    Text(text = item.itemName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text(text = "Status: ${item.status.uppercase()}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = item.itemName,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Status: ${item.status.uppercase()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     HorizontalDivider()
                     Text(text = "Lokasi: ${item.lastSeenLocation}")
                     Text(text = "Tanggal Kehilangan: ${item.dateLost}")
@@ -166,12 +196,21 @@ fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigat
                     Text(text = "Deskripsi:", fontWeight = FontWeight.Bold)
                     Text(text = item.description)
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    if (item.status == "belum") {
-                        Button(onClick = { item.id?.let { viewModel.markAsFound(it) } }, modifier = Modifier.fillMaxWidth()) {
+                    if (item.status.contains("belum", ignoreCase = true)) {
+                        Button(
+                            onClick = { item.id?.let { viewModel.markAsFound(it) } },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Text("Tandai Sudah Ditemukan")
                         }
+                    } else {
+                        Text(
+                            text = "Barang ini telah ditemukan.",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
