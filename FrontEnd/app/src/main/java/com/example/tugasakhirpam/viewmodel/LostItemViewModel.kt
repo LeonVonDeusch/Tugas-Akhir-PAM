@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.example.tugasakhirpam.data.SupabaseClientProvider
+import io.github.jan.supabase.auth.auth
+
 
 sealed interface LostItemUiState {
     object Idle : LostItemUiState
@@ -65,7 +68,7 @@ class LostItemViewModel(
         }
     }
 
-    fun createLostItemReport(userId: String) {
+    fun createLostItemReport() {
         if (itemNameInput.value.isBlank() || locationInput.value.isBlank()) {
             _actionState.value = ActionState.Error("Nama barang dan lokasi wajib diisi")
             return
@@ -74,6 +77,13 @@ class LostItemViewModel(
         viewModelScope.launch {
             _actionState.value = ActionState.Loading
             try {
+                val currentUserId = SupabaseClientProvider.client.auth.currentSessionOrNull()?.user?.id
+
+                if (currentUserId == null) {
+                    _actionState.value = ActionState.Error("Akses ditolak: Anda harus login terlebih dahulu.")
+                    return@launch
+                }
+
                 var finalImageUrl: String? = null
 
                 imageByteArrayInput.value?.let { bytes ->
@@ -82,7 +92,7 @@ class LostItemViewModel(
                 }
 
                 val newItem = LostItem(
-                    userId = userId,
+                    userId = currentUserId,
                     categoryId = categoryIdInput.value.toIntOrNull() ?: 1,
                     itemName = itemNameInput.value,
                     description = descriptionInput.value,

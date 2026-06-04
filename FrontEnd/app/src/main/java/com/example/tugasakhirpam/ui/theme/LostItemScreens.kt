@@ -142,7 +142,7 @@ fun LostItemFormScreen(viewModel: LostItemViewModel, onNavigateBack: () -> Unit)
 
             Button(
                 onClick = {
-                    viewModel.createLostItemReport(userId = "276b92eb-fed7-4495-85df-16a23815f649")
+                    viewModel.createLostItemReport()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = actionState !is ActionState.Loading
