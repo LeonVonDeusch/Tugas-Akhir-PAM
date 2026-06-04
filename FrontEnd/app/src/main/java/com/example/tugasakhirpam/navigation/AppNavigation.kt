@@ -123,7 +123,8 @@ fun MainNavHost(
             LostItemListScreen(
                 viewModel = lostItemViewModel,
                 onNavigateToAddReport = { navController.navigate(Screen.LostItemForm.route) },
-                onNavigateToDetail = { itemId -> navController.navigate(Screen.LostItemDetail.createRoute(itemId)) }
+                onNavigateToDetail = { itemId -> navController.navigate(Screen.LostItemDetail.createRoute(itemId)) },
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

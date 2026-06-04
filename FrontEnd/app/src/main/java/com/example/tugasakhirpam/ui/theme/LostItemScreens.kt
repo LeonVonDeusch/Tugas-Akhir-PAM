@@ -27,13 +27,18 @@ import androidx.compose.material.icons.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LostItemListScreen(viewModel: LostItemViewModel, onNavigateToAddReport: () -> Unit, onNavigateToDetail: (String) -> Unit) {
+fun LostItemListScreen(viewModel: LostItemViewModel, onNavigateToAddReport: () -> Unit, onNavigateToDetail: (String) -> Unit, onNavigateBack: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.loadLostItems() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Barang Hilang", fontWeight = FontWeight.Bold) }) },
+        topBar = { TopAppBar(title = { Text("Barang Hilang", fontWeight = FontWeight.Bold) }, navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+            }
+        }
+        )},
         floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAddReport) { Icon(Icons.Default.Add, "Tambah") }
         }
@@ -137,7 +142,7 @@ fun LostItemFormScreen(viewModel: LostItemViewModel, onNavigateBack: () -> Unit)
 
             Button(
                 onClick = {
-                    viewModel.createLostItemReport(userId = "e6e0d938-16c3-4d85-a7b2-a4e99f01ab32")
+                    viewModel.createLostItemReport(userId = "276b92eb-fed7-4495-85df-16a23815f649")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = actionState !is ActionState.Loading
