@@ -73,5 +73,11 @@ dependencies {
 
     // Ktor Android Client
     implementation("io.ktor:ktor-client-android:3.0.3")
+
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
 
