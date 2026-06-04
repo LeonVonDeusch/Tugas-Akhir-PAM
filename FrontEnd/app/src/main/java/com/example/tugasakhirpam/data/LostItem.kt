@@ -13,5 +13,6 @@ data class LostItem(
     @SerialName("last_seen_location") val lastSeenLocation: String,
     @SerialName("date_lost") val dateLost: String,
     @SerialName("image_url") val imageUrl: String? = null,
-    @SerialName("status") val status: String = "belum"
+    @SerialName("status") val status: String = "belum",
+    @SerialName("created_at") val createdAt: String? = null
 )
