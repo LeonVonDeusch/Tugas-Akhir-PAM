@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tugas Akhir PAM"
+rootProject.name = "FrontEnd"
 include(":app")
  
