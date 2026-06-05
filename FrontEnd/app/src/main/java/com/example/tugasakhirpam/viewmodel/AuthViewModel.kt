@@ -11,12 +11,10 @@ import kotlinx.coroutines.launch
 class AuthViewModel : ViewModel() {
 
     /*
-     * Repository digunakan untuk mengakses Supabase.
-     * Untuk materi dasar, repository dibuat langsung di ViewModel.
-     *
-     * Pada project besar, lebih baik gunakan Dependency Injection seperti Hilt.
+     * Repository dibuat publik (tanpa kata private)
+     * agar fungsinya bisa dipanggil langsung dari ClaimScreen.
      */
-    private val repository = AuthRepository()
+    val repository = AuthRepository()
 
     /*
      * _uiState bersifat private agar hanya ViewModel yang bisa mengubah state.
@@ -61,8 +59,6 @@ class AuthViewModel : ViewModel() {
                     is SessionStatus.NotAuthenticated -> AuthCheckState.NotAuthenticated
                     is SessionStatus.Initializing -> AuthCheckState.Checking
                     is SessionStatus.RefreshFailure -> {
-                        // Jika refresh gagal (misal koneksi internet), tetap cek session yang ada
-                        // atau anggap tidak terautentikasi jika session expired.
                         if (repository.isLoggedIn()) AuthCheckState.Authenticated
                         else AuthCheckState.NotAuthenticated
                     }
@@ -87,33 +83,17 @@ class AuthViewModel : ViewModel() {
 
     /*
      * Fungsi login.
-     * viewModelScope digunakan agar coroutine mengikuti lifecycle ViewModel.
      */
     fun login() {
         viewModelScope.launch {
             try {
-                /*
-                 * Ubah state menjadi Loading agar UI bisa menampilkan progress.
-                 */
                 _uiState.value = AuthUiState.Loading
-
-                /*
-                 * Panggil repository untuk login ke Supabase.
-                 */
                 repository.login(
                     email = _email.value,
                     password = _password.value
                 )
-
-                /*
-                 * Jika berhasil, ubah state menjadi Success.
-                 */
                 _uiState.value = AuthUiState.Success
-
             } catch (e: Exception) {
-                /*
-                 * Jika gagal, tampilkan pesan error.
-                 */
                 _uiState.value = AuthUiState.Error(
                     message = e.message ?: "Login gagal"
                 )
@@ -128,14 +108,11 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _uiState.value = AuthUiState.Loading
-
                 repository.register(
                     email = _email.value,
                     password = _password.value
                 )
-
                 _uiState.value = AuthUiState.Success
-
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(
                     message = e.message ?: "Register gagal"
@@ -150,20 +127,14 @@ class AuthViewModel : ViewModel() {
     fun logout() {
         viewModelScope.launch {
             repository.logout()
-
-            /*
-             * Setelah logout, state dikembalikan ke Idle.
-             */
             _uiState.value = AuthUiState.Idle
         }
     }
 
     /*
      * Fungsi ini digunakan untuk mengembalikan state ke Idle.
-     * Biasanya dipanggil setelah navigasi berhasil.
      */
     fun resetState() {
         _uiState.value = AuthUiState.Idle
     }
 }
-

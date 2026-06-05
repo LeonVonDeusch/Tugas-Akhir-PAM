@@ -9,10 +9,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DashboardScreen(
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onClaimClick: () -> Unit // Kita tambahkan parameter aksi untuk klik tombol klaim
 ) {
     /*
-     * Dashboard sederhana yang muncul setelah user berhasil login.
+     * Dashboard setelah user berhasil login.
      */
     Column(
         modifier = Modifier
@@ -33,13 +34,27 @@ fun DashboardScreen(
             text = "Anda berhasil login ke aplikasi."
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // TOMBOL BARU: Untuk menuju ke halaman Klaim Barang
         Button(
-            onClick = onLogoutClick
+            onClick = onClaimClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text("Ajukan Klaim Barang")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tombol Logout bawaan
+        OutlinedButton(
+            onClick = onLogoutClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Logout")
         }
     }
 }
-

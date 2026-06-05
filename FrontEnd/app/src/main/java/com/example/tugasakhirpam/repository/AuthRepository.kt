@@ -3,8 +3,8 @@ package com.example.tugasakhirpam.repository
 import com.example.tugasakhirpam.data.SupabaseClientProvider
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.postgrest.postgrest // 1. Tambah import untuk database
 import kotlinx.coroutines.flow.Flow
 
 class AuthRepository {
@@ -18,6 +18,23 @@ class AuthRepository {
      * Flow untuk memantau perubahan status session (Authenticated, NotAuthenticated, dll)
      */
     val sessionStatus: Flow<SessionStatus> = supabase.auth.sessionStatus
+
+    /*
+     * Fungsi untuk menyimpan data klaim barang ke database Supabase.
+     * Fungsi ini menerima parameter objek data yang ingin dikirim.
+     */
+    suspend fun klaimBarang(namaBarang: String, deskripsi: String, lokasi: String, tanggal: String) {
+        // Kita bungkus data ke dalam map agar otomatis dikonversi menjadi JSON oleh Supabase
+        val dataKlaim = mapOf(
+            "nama_barang" to namaBarang,
+            "deskripsi" to deskripsi,
+            "lokasi" to lokasi,
+            "tanggal" to tanggal
+        )
+
+        // Mengirim data ke tabel database bernama "klaim_barang"
+        supabase.postgrest.from("klaim_barang").insert(dataKlaim)
+    }
 
     /*
      * Fungsi register user baru menggunakan email dan password.
@@ -70,4 +87,3 @@ class AuthRepository {
         supabase.auth.awaitInitialization()
     }
 }
-

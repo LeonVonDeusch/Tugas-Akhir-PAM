@@ -1,6 +1,5 @@
 package com.example.tugasakhirpam.navigation
 
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -11,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import com.example.tugasakhirpam.ui.theme.ClaimScreen
 import com.example.tugasakhirpam.ui.theme.DashboardScreen
 import com.example.tugasakhirpam.ui.theme.LoginScreen
 import com.example.tugasakhirpam.ui.theme.RegisterScreen
@@ -54,7 +54,6 @@ fun AppNavigation(
     }
 }
 
-
 @Composable
 fun MainNavHost(
     authViewModel: AuthViewModel,
@@ -65,7 +64,6 @@ fun MainNavHost(
     val email = authViewModel.email.collectAsStateWithLifecycle()
     val password = authViewModel.password.collectAsStateWithLifecycle()
     val uiState = authViewModel.uiState.collectAsStateWithLifecycle()
-
 
     LaunchedEffect(uiState.value) {
         if (uiState.value is AuthUiState.Success) {
@@ -115,6 +113,7 @@ fun MainNavHost(
             )
         }
 
+        // Dashboard diubah agar menerima aksi perpindahan ke halaman klaim
         composable(Screen.Dashboard.route) {
             DashboardScreen(
                 onLogoutClick = {
@@ -125,6 +124,21 @@ fun MainNavHost(
                             inclusive = true
                         }
                     }
+                },
+                onClaimClick = {
+                    navController.navigate(Screen.Claim.route)
+                }
+            )
+        }
+
+        // Daftarkan rute ClaimScreen baru di sini
+        composable(Screen.Claim.route) {
+            ClaimScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSubmitSuccess = {
+                    navController.popBackStack()
                 }
             )
         }
