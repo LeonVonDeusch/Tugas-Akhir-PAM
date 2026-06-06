@@ -24,3 +24,8 @@ sealed class Screen(val route: String) {
     }
 }
 
+    /*
+     * Route untuk halaman klaim barang.
+     */
+    object Claim : Screen("claim")
+}

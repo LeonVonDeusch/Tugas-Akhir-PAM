@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.tugasakhirpam"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36 // Diubah agar formatnya standar Android Studio
 
     defaultConfig {
         applicationId = "com.example.tugasakhirpam"
@@ -71,6 +69,12 @@ dependencies {
     // Supabase Auth
     implementation("io.github.jan-tennert.supabase:auth-kt")
 
+    // Supabase Database (Postgrest) -> INI YANG BARU KITA TAMBAHKAN
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+
+    // Ktor Android Client
+    implementation("io.ktor:ktor-client-android:3.0.3")
+}
     // Supabase Postgrest (operasi database)
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
 

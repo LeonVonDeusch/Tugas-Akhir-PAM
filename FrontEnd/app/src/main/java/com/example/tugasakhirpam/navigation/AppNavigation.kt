@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import com.example.tugasakhirpam.ui.theme.ClaimScreen
 import androidx.navigation.navArgument
 import com.example.tugasakhirpam.ui.screens.FoundItemDetailScreen
 import com.example.tugasakhirpam.ui.screens.FoundItemFormScreen
@@ -115,6 +116,7 @@ fun MainNavHost(
             )
         }
 
+        // Dashboard diubah agar menerima aksi perpindahan ke halaman klaim
         composable(Screen.Dashboard.route) {
             DashboardScreen(
                 onLogoutClick = {
@@ -196,6 +198,21 @@ fun MainNavHost(
                     navController.navigate(Screen.FoundItemList.route) {
                         popUpTo(Screen.FoundItemForm.route) { inclusive = true }
                     }
+                },
+                onClaimClick = {
+                    navController.navigate(Screen.Claim.route)
+                }
+            )
+        }
+
+        // Daftarkan rute ClaimScreen baru di sini
+        composable(Screen.Claim.route) {
+            ClaimScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSubmitSuccess = {
+                    navController.popBackStack()
                 }
             )
         }
