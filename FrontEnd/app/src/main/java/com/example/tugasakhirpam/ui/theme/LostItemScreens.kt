@@ -159,7 +159,7 @@ fun LostItemFormScreen(viewModel: LostItemViewModel, onNavigateBack: () -> Unit)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigateBack: () -> Unit) {
+fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigateBack: () -> Unit, onClaimClick: (String) -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(itemId) { viewModel.loadLostItemDetail(itemId) }
@@ -221,6 +221,19 @@ fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigat
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Tombol mengajukan klaim kepemilikan atas barang hilang ini
+                    Button(
+                        onClick = { item.id?.let { onClaimClick(it) } },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Ajukan Klaim Barang Ini")
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

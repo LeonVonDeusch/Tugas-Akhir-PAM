@@ -25,7 +25,9 @@ sealed class Screen(val route: String) {
 
 
     /*
-     * Route untuk halaman klaim barang.
+     * Route untuk halaman klaim barang (membawa id barang hilang yang diklaim).
      */
-    object Claim : Screen("claim")
+    object Claim : Screen("claim/{lostItemId}") {
+        fun createRoute(lostItemId: String) = "claim/$lostItemId"
+    }
 }
