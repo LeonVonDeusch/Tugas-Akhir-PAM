@@ -1,6 +1,5 @@
 package com.example.tugasakhirpam.ui.theme
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,36 +10,41 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
+/**
+ * Form klaim kepemilikan atas sebuah barang hilang.
+ * Klaim akan disimpan ke tabel "claims" di Supabase, terhubung ke barang hilang
+ * lewat foreign key lost_item_id.
+ *
+ * @param lostItemId id barang hilang yang sedang diklaim (dari halaman detail).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClaimScreen(
+    lostItemId: String,
     onBackClick: () -> Unit = {},
     onSubmitSuccess: () -> Unit = {},
     authViewModel: com.example.tugasakhirpam.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    // State untuk Form Inputan
-    var namaBarang by remember { mutableStateOf("") }
-    var lokasiDitemukan by remember { mutableStateOf("") }
-    var deskripsiKlaim by remember { mutableStateOf("") }
+    // State untuk form inputan (sesuai kolom tabel claims)
+    var proofDescription by remember { mutableStateOf("") }
+    var contactInfo by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
 
-    // State untuk Animasi Sukses/Loading
+    // State untuk proses & hasil
     var isSubmitting by remember { mutableStateOf(false) }
     var isSuccess by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -77,6 +81,7 @@ fun ClaimScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             if (isSuccess) {
+                // Tampilan sukses
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -98,7 +103,7 @@ fun ClaimScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Tim admin akan segera memeriksa bukti kepemilikan barangmu. Mohon tunggu notifikasi selanjutnya.",
+                        text = "Pelapor barang akan memeriksa bukti kepemilikanmu. Mohon tunggu kabar selanjutnya melalui kontak yang kamu berikan.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -112,17 +117,19 @@ fun ClaimScreen(
                         },
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Kembali ke Dashboard")
+                        Text("Kembali")
                     }
                 }
             } else {
+                // Tampilan form
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Kartu info
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -141,7 +148,7 @@ fun ClaimScreen(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Isi formulir ini dengan memberikan deskripsi sejelas-jelasnya agar proses verifikasi kepemilikan berjalan lancar.",
+                                text = "Jelaskan bukti kepemilikanmu sedetail mungkin dan cantumkan kontak yang bisa dihubungi agar pelapor dapat memverifikasi klaimmu.",
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 lineHeight = 18.sp
@@ -149,62 +156,71 @@ fun ClaimScreen(
                         }
                     }
 
+                    // Pesan error (jika gagal)
+                    errorMessage?.let { msg ->
+                        Text(
+                            text = "Gagal: $msg",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp
+                        )
+                    }
+
                     Text(
-                        text = "Detail Informasi Barang",
+                        text = "Detail Klaim",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
 
                     OutlinedTextField(
-                        value = namaBarang,
-                        onValueChange = { namaBarang = it },
-                        label = { Text("Nama Barang") },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                        placeholder = { Text("Contoh: Kunci Motor Honda, Tumblr Corkcicle") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = lokasiDitemukan,
-                        onValueChange = { lokasiDitemukan = it },
-                        label = { Text("Perkiraan Lokasi Barang") },
-                        leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                        placeholder = { Text("Contoh: Kantin Vokasi, Koridor Gedung A") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = deskripsiKlaim,
-                        onValueChange = { deskripsiKlaim = it },
+                        value = proofDescription,
+                        onValueChange = { proofDescription = it },
                         label = { Text("Deskripsi Bukti Kepemilikan") },
-                        placeholder = { Text("Sebutkan ciri khusus yang tidak ada di foto, gantungan kunci, goresan tertentu, atau isi dalam tas untuk mencocokkan.") },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        placeholder = { Text("Sebutkan ciri khusus yang tidak terlihat di foto: goresan, isi, gantungan, dsb.") },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 4,
                         shape = RoundedCornerShape(12.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = contactInfo,
+                        onValueChange = { contactInfo = it },
+                        label = { Text("Info Kontak (No. HP / Email)") },
+                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                        placeholder = { Text("Contoh: 08xxxxxxxxxx") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = message,
+                        onValueChange = { message = it },
+                        label = { Text("Pesan untuk Pelapor (opsional)") },
+                        placeholder = { Text("Pesan tambahan jika ada") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
                             isSubmitting = true
+                            errorMessage = null
                             coroutineScope.launch {
                                 try {
-                                    val tanggalSekarang = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-
-                                    // Panggilan database yang sudah disesuaikan namanya
                                     authViewModel.repository.klaimBarang(
-                                        namaBarang = namaBarang,
-                                        deskripsi = deskripsiKlaim,
-                                        lokasi = lokasiDitemukan,
-                                        tanggal = tanggalSekarang
+                                        lostItemId = lostItemId,
+                                        proofDescription = proofDescription,
+                                        contactInfo = contactInfo,
+                                        message = message
                                     )
                                     isSuccess = true
                                 } catch (e: Exception) {
-                                    e.printStackTrace()
+                                    // Tampilkan error ke user (tidak lagi disembunyikan)
+                                    errorMessage = e.message ?: "Terjadi kesalahan saat mengirim klaim"
                                 } finally {
                                     isSubmitting = false
                                 }
@@ -214,7 +230,7 @@ fun ClaimScreen(
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        enabled = namaBarang.isNotBlank() && lokasiDitemukan.isNotBlank() && deskripsiKlaim.isNotBlank() && !isSubmitting,
+                        enabled = proofDescription.isNotBlank() && contactInfo.isNotBlank() && !isSubmitting,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )

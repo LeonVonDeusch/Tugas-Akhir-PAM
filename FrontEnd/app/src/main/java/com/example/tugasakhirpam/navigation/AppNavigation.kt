@@ -27,7 +27,6 @@ import com.example.tugasakhirpam.viewmodel.AuthUiState
 import com.example.tugasakhirpam.viewmodel.AuthViewModel
 import com.example.tugasakhirpam.viewmodel.FoundItemViewModel
 import com.example.tugasakhirpam.viewmodel.LostItemViewModel
-import com.google.android.libraries.identity.googleid.Claim
 
 @Composable
 fun AppNavigation(
@@ -117,7 +116,6 @@ fun MainNavHost(
             )
         }
 
-        // Dashboard diubah agar menerima aksi perpindahan ke halaman klaim
         composable(Screen.Dashboard.route) {
             DashboardScreen(
                 onLogoutClick = {
@@ -199,22 +197,20 @@ fun MainNavHost(
                     navController.navigate(Screen.FoundItemList.route) {
                         popUpTo(Screen.FoundItemForm.route) { inclusive = true }
                     }
-                },
-//                onClaimClick = {
-//                    navController.navigate(Screen.Claim.route)
-//                }
+                }
             )
         }
 
-        // Daftarkan rute ClaimScreen baru di sini
-        composable(Screen.Claim.route) {
+        // Halaman klaim untuk satu barang hilang (membawa lostItemId)
+        composable(
+            route = Screen.Claim.route,
+            arguments = listOf(navArgument("lostItemId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val lostItemId = backStackEntry.arguments?.getString("lostItemId") ?: ""
             ClaimScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onSubmitSuccess = {
-                    navController.popBackStack()
-                }
+                lostItemId = lostItemId,
+                onBackClick = { navController.popBackStack() },
+                onSubmitSuccess = { navController.popBackStack() }
             )
         }
 
@@ -243,7 +239,8 @@ fun MainNavHost(
             LostItemDetailScreen(
                 itemId = itemId,
                 viewModel = lostItemViewModel,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onClaimClick = { id -> navController.navigate(Screen.Claim.createRoute(id)) }
             )
         }
     }

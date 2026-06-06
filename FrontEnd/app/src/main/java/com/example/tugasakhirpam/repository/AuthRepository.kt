@@ -20,20 +20,29 @@ class AuthRepository {
     val sessionStatus: Flow<SessionStatus> = supabase.auth.sessionStatus
 
     /*
-     * Fungsi untuk menyimpan data klaim barang ke database Supabase.
-     * Fungsi ini menerima parameter objek data yang ingin dikirim.
+     * Menyimpan klaim kepemilikan atas sebuah barang hilang ke tabel "claims".
+     * Klaim terhubung ke lost_items lewat lost_item_id (foreign key).
+     * claimer_id diambil otomatis dari user yang sedang login.
      */
-    suspend fun klaimBarang(namaBarang: String, deskripsi: String, lokasi: String, tanggal: String) {
-        // Kita bungkus data ke dalam map agar otomatis dikonversi menjadi JSON oleh Supabase
-        val dataKlaim = mapOf(
-            "nama_barang" to namaBarang,
-            "deskripsi" to deskripsi,
-            "lokasi" to lokasi,
-            "tanggal" to tanggal
+    suspend fun klaimBarang(
+        lostItemId: String,
+        proofDescription: String,
+        contactInfo: String,
+        message: String
+    ) {
+        val claimerId = supabase.auth.currentUserOrNull()?.id
+            ?: throw Exception("Anda harus login untuk mengajukan klaim.")
+
+        val dataKlaim = com.example.tugasakhirpam.data.ClaimInsert(
+            lostItemId = lostItemId,
+            claimerId = claimerId,
+            proofDescription = proofDescription,
+            contactInfo = contactInfo,
+            message = message.ifBlank { null }
         )
 
-        // Mengirim data ke tabel database bernama "klaim_barang"
-        supabase.postgrest.from("klaim_barang").insert(dataKlaim)
+        // Mengirim data ke tabel "claims" (foreign key ke lost_items)
+        supabase.postgrest.from("claims").insert(dataKlaim)
     }
 
     /*
