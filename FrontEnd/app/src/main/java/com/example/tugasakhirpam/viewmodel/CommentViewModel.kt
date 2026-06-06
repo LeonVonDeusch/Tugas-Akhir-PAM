@@ -2,8 +2,10 @@ package com.example.tugasakhirpam.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tugasakhirpam.data.SupabaseClientProvider
 import com.example.tugasakhirpam.model.Comment
 import com.example.tugasakhirpam.repository.CommentRepository
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -87,8 +89,13 @@ class CommentViewModel(
         viewModelScope.launch {
             _uiState.value = CommentUiState.Loading
             try {
+                // Ambil identitas user yang sedang login dari sesi Supabase.
+                // Email disimpan agar bisa ditampilkan di tiap komentar (gaya YouTube).
+                val user = SupabaseClientProvider.client.auth.currentUserOrNull()
+
                 val comment = Comment(
-                    user_id = userId,
+                    user_id = user?.id ?: userId,
+                    user_email = user?.email,
                     item_id = itemId,
                     item_type = itemType,
                     content = content,

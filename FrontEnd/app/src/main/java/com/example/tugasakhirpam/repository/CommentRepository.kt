@@ -1,139 +1,79 @@
 package com.example.tugasakhirpam.repository
 
+import com.example.tugasakhirpam.data.SupabaseClientProvider
 import com.example.tugasakhirpam.model.Comment
-import com.example.tugasakhirpam.model.CommentResponse
-import com.example.tugasakhirpam.model.GeneralResponse
-import com.example.tugasakhirpam.model.SingleCommentResponse
-import com.example.tugasakhirpam.model.UpdateCommentRequest
-import com.example.tugasakhirpam.network.RetrofitClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
+import com.example.tugasakhirpam.model.CommentInsert
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
 
 /**
  * Repository untuk semua operasi komentar.
  *
- * Bertanggung jawab HANYA untuk komunikasi data (API call).
- * Tidak ada logika UI, tidak ada Toast, tidak ada context Android di sini.
+ * Versi ini memakai Supabase (Postgrest) langsung, menggantikan Retrofit/REST API
+ * lama. Dengan begitu fitur komentar tidak lagi butuh server backend terpisah —
+ * cukup tabel `comments` di Supabase.
  *
- * Semua fungsi bersifat suspend agar bisa dipanggil dari coroutine di ViewModel.
+ * Bertanggung jawab HANYA untuk komunikasi data. Tidak ada logika UI di sini.
  */
 class CommentRepository {
 
+    private val supabase = SupabaseClientProvider.client
+
     /**
-     * Mengambil semua komentar berdasarkan item.
-     * @return List<Comment> data mentah dari API (flat list).
+     * Mengambil semua komentar untuk satu barang, diurutkan dari yang terlama.
+     * @return List<Comment> data mentah (flat list) dari Supabase.
      */
     suspend fun getComments(itemType: String, itemId: String): List<Comment> {
-        return suspendCoroutine { continuation ->
-            RetrofitClient.api.getComments(itemType, itemId)
-                .enqueue(object : Callback<CommentResponse> {
-                    override fun onResponse(
-                        call: Call<CommentResponse>,
-                        response: Response<CommentResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            continuation.resume(response.body()?.data ?: emptyList())
-                        } else {
-                            continuation.resumeWithException(
-                                Exception("Gagal mengambil komentar: ${response.code()}")
-                            )
-                        }
-                    }
-
-                    override fun onFailure(call: Call<CommentResponse>, t: Throwable) {
-                        continuation.resumeWithException(t)
-                    }
-                })
-        }
+        return supabase.from("comments")
+            .select {
+                filter {
+                    eq("item_type", itemType)
+                    eq("item_id", itemId)
+                }
+                order("created_at", Order.ASCENDING)
+            }
+            .decodeList<Comment>()
     }
 
     /**
      * Membuat komentar baru (termasuk reply jika parent_id diisi).
-     * @return Comment yang baru dibuat dari server.
+     * Email pembuat ikut disimpan agar bisa ditampilkan seperti komentar YouTube.
+     * @return Comment yang baru dibuat dari Supabase.
      */
     suspend fun createComment(comment: Comment): Comment {
-        return suspendCoroutine { continuation ->
-            RetrofitClient.api.createComment(comment)
-                .enqueue(object : Callback<SingleCommentResponse> {
-                    override fun onResponse(
-                        call: Call<SingleCommentResponse>,
-                        response: Response<SingleCommentResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            val created = response.body()?.data
-                                ?: throw Exception("Respons kosong dari server")
-                            continuation.resume(created)
-                        } else {
-                            continuation.resumeWithException(
-                                Exception("Gagal membuat komentar: ${response.code()}")
-                            )
-                        }
-                    }
+        val insert = CommentInsert(
+            user_id = comment.user_id,
+            user_email = comment.user_email,
+            item_id = comment.item_id,
+            item_type = comment.item_type,
+            content = comment.content,
+            parent_id = comment.parent_id
+        )
 
-                    override fun onFailure(call: Call<SingleCommentResponse>, t: Throwable) {
-                        continuation.resumeWithException(t)
-                    }
-                })
-        }
+        return supabase.from("comments")
+            .insert(insert) { select() }
+            .decodeSingle<Comment>()
     }
 
     /**
      * Mengupdate isi komentar berdasarkan ID.
      */
     suspend fun updateComment(id: String, content: String): Comment {
-        return suspendCoroutine { continuation ->
-            RetrofitClient.api.updateComment(id, UpdateCommentRequest(content))
-                .enqueue(object : Callback<SingleCommentResponse> {
-                    override fun onResponse(
-                        call: Call<SingleCommentResponse>,
-                        response: Response<SingleCommentResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            val updated = response.body()?.data
-                                ?: throw Exception("Respons kosong dari server")
-                            continuation.resume(updated)
-                        } else {
-                            continuation.resumeWithException(
-                                Exception("Gagal mengupdate komentar: ${response.code()}")
-                            )
-                        }
-                    }
-
-                    override fun onFailure(call: Call<SingleCommentResponse>, t: Throwable) {
-                        continuation.resumeWithException(t)
-                    }
-                })
-        }
+        return supabase.from("comments")
+            .update({ set("content", content) }) {
+                filter { eq("id", id) }
+                select()
+            }
+            .decodeSingle<Comment>()
     }
 
     /**
      * Menghapus komentar berdasarkan ID.
      */
     suspend fun deleteComment(id: String) {
-        return suspendCoroutine { continuation ->
-            RetrofitClient.api.deleteComment(id)
-                .enqueue(object : Callback<GeneralResponse> {
-                    override fun onResponse(
-                        call: Call<GeneralResponse>,
-                        response: Response<GeneralResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            continuation.resume(Unit)
-                        } else {
-                            continuation.resumeWithException(
-                                Exception("Gagal menghapus komentar: ${response.code()}")
-                            )
-                        }
-                    }
-
-                    override fun onFailure(call: Call<GeneralResponse>, t: Throwable) {
-                        continuation.resumeWithException(t)
-                    }
-                })
-        }
+        supabase.from("comments")
+            .delete {
+                filter { eq("id", id) }
+            }
     }
 }

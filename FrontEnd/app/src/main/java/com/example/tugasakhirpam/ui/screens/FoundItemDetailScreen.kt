@@ -12,9 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.tugasakhirpam.CommentActivity
 import com.example.tugasakhirpam.viewmodel.FoundItemDetailState
 import com.example.tugasakhirpam.viewmodel.FoundItemFormState
 
@@ -75,6 +77,7 @@ fun FoundItemDetailScreen(
 
                 is FoundItemDetailState.Success -> {
                     val item = detailState.item
+                    val context = LocalContext.current
 
                     Column(
                         modifier = Modifier
@@ -122,6 +125,24 @@ fun FoundItemDetailScreen(
                         DetailRow(label = "Deskripsi", value = item.description.ifBlank { "-" })
                         DetailRow(label = "Lokasi Penemuan", value = item.foundLocation)
                         DetailRow(label = "Tanggal Ditemukan", value = item.dateFound)
+
+                        // Tombol membuka halaman komentar/diskusi untuk barang ini
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                context.startActivity(
+                                    CommentActivity.newIntent(
+                                        context = context,
+                                        itemType = "found",
+                                        itemId = item.id,
+                                        userId = currentUserId
+                                    )
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Lihat Komentar / Diskusi")
+                        }
 
                         // Tombol update status hanya tampil untuk pelapor & status masih "belum"
                         if (item.userId == currentUserId && item.status == "belum") {

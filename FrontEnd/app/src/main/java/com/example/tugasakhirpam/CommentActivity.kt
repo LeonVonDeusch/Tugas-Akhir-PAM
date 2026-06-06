@@ -1,5 +1,7 @@
 package com.example.tugasakhirpam
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
@@ -49,17 +51,24 @@ class CommentActivity : AppCompatActivity() {
     // viewModels() adalah delegate dari Activity KTX — otomatis menangani lifecycle
     private val viewModel: CommentViewModel by viewModels()
 
-    // ── Konstanta item (idealnya dikirim lewat Intent) ─────────────────────────
+    // ── Data item (dikirim lewat Intent dari halaman detail) ───────────────────
+    // Nilai default tetap dipakai sebagai fallback jika Activity dibuka tanpa Intent extra.
 
-    private val itemId = "660e8400-e29b-41d4-a716-446655440111"
-    private val itemType = "lost"
-    private val currentUserId = "550e8400-e29b-41d4-a716-446655440001"
+    private var itemId = ""
+    private var itemType = ""
+    private var currentUserId = ""
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comment)
+
+        // Ambil data item dari Intent. Jika tidak ada (mis. dibuka langsung),
+        // pakai nilai default agar Activity tetap berfungsi.
+        itemType = intent.getStringExtra(EXTRA_ITEM_TYPE) ?: "lost"
+        itemId = intent.getStringExtra(EXTRA_ITEM_ID) ?: "660e8400-e29b-41d4-a716-446655440111"
+        currentUserId = intent.getStringExtra(EXTRA_USER_ID) ?: "550e8400-e29b-41d4-a716-446655440001"
 
         bindViews()
         setupAdapter()
@@ -206,5 +215,27 @@ class CommentActivity : AppCompatActivity() {
             }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    // ── Helper pembuat Intent ────────────────────────────────────────────────────
+
+    companion object {
+        const val EXTRA_ITEM_TYPE = "extra_item_type"
+        const val EXTRA_ITEM_ID = "extra_item_id"
+        const val EXTRA_USER_ID = "extra_user_id"
+
+        /**
+         * Membuat Intent untuk membuka layar komentar suatu barang.
+         * @param itemType jenis barang: "lost" atau "found"
+         * @param itemId   ID barang yang komentarnya ingin dilihat
+         * @param userId   ID user yang sedang login (pembuat komentar)
+         */
+        fun newIntent(context: Context, itemType: String, itemId: String, userId: String): Intent {
+            return Intent(context, CommentActivity::class.java).apply {
+                putExtra(EXTRA_ITEM_TYPE, itemType)
+                putExtra(EXTRA_ITEM_ID, itemId)
+                putExtra(EXTRA_USER_ID, userId)
+            }
+        }
     }
 }
