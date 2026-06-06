@@ -82,5 +82,17 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.cardview:cardview:1.0.0")
+
+    // Supabase BOM (sudah ada)
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.1.4"))
+
+// Auth (sudah ada)
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+
+// Tambahkan ini untuk database (PostgREST):
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+
+// Untuk upload gambar (Storage):
+    implementation("io.github.jan-tennert.supabase:storage-kt")
 }
 
