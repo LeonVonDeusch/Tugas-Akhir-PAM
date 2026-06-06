@@ -1,0 +1,6 @@
+## Copy this file to local.properties, then fill in local machine values.
+## local.properties is ignored by git and should not be committed.
+
+sdk.dir=C\:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_KEY=your-supabase-publishable-or-anon-key

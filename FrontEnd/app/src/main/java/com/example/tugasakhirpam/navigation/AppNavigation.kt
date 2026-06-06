@@ -12,7 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.example.tugasakhirpam.ui.theme.DashboardScreen
+import com.example.tugasakhirpam.ui.dashboard.DashboardScreen
 import com.example.tugasakhirpam.ui.theme.LoginScreen
 import com.example.tugasakhirpam.ui.theme.RegisterScreen
 import com.example.tugasakhirpam.ui.theme.LostItemDetailScreen
@@ -21,12 +21,14 @@ import com.example.tugasakhirpam.ui.theme.LostItemListScreen
 import com.example.tugasakhirpam.viewmodel.AuthCheckState
 import com.example.tugasakhirpam.viewmodel.AuthUiState
 import com.example.tugasakhirpam.viewmodel.AuthViewModel
+import com.example.tugasakhirpam.viewmodel.DashboardViewModel
 import com.example.tugasakhirpam.viewmodel.LostItemViewModel
 
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel = viewModel(),
-    lostItemViewModel: LostItemViewModel = viewModel()
+    lostItemViewModel: LostItemViewModel = viewModel(),
+    dashboardViewModel: DashboardViewModel = viewModel()
 ) {
     val authCheckState = authViewModel.authCheckState.collectAsStateWithLifecycle()
 
@@ -43,6 +45,7 @@ fun AppNavigation(
             MainNavHost(
                 authViewModel = authViewModel,
                 lostItemViewModel = lostItemViewModel,
+                dashboardViewModel = dashboardViewModel,
                 startDestination = Screen.Dashboard.route
             )
         }
@@ -50,6 +53,7 @@ fun AppNavigation(
             MainNavHost(
                 authViewModel = authViewModel,
                 lostItemViewModel = lostItemViewModel,
+                dashboardViewModel = dashboardViewModel,
                 startDestination = Screen.Login.route
             )
         }
@@ -60,6 +64,7 @@ fun AppNavigation(
 fun MainNavHost(
     authViewModel: AuthViewModel,
     lostItemViewModel: LostItemViewModel,
+    dashboardViewModel: DashboardViewModel,
     startDestination: String
 ) {
     val navController = rememberNavController()
@@ -107,6 +112,7 @@ fun MainNavHost(
 
         composable(Screen.Dashboard.route) {
             DashboardScreen(
+                viewModel = dashboardViewModel,
                 onLogoutClick = {
                     authViewModel.logout()
                     navController.navigate(Screen.Login.route) {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +24,6 @@ import com.example.tugasakhirpam.viewmodel.LostItemViewModel
 import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +35,7 @@ fun LostItemListScreen(viewModel: LostItemViewModel, onNavigateToAddReport: () -
     Scaffold(
         topBar = { TopAppBar(title = { Text("Barang Hilang", fontWeight = FontWeight.Bold) }, navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
             }
         }
         )},
@@ -118,7 +118,7 @@ fun LostItemFormScreen(viewModel: LostItemViewModel, onNavigateBack: () -> Unit)
 
     Scaffold(topBar = { TopAppBar(title = { Text("Lapor Barang Hilang", fontWeight = FontWeight.Bold) }, navigationIcon = {
         IconButton(onClick = onNavigateBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
         }
     })
     })
@@ -163,7 +163,7 @@ fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigat
 
     Scaffold(topBar = { TopAppBar(title = { Text("Detail Laporan") }, navigationIcon = {
         IconButton(onClick = onNavigateBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
         }
     }) }) { padding ->
         when (uiState) {
