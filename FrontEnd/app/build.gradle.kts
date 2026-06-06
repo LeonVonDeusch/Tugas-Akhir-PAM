@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.googleid)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,7 +75,7 @@ dependencies {
 
     // Ktor Android Client
     implementation("io.ktor:ktor-client-android:3.0.3")
-}
+
     // Supabase Postgrest (operasi database)
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
 

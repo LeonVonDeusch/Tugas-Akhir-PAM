@@ -27,6 +27,7 @@ import com.example.tugasakhirpam.viewmodel.AuthUiState
 import com.example.tugasakhirpam.viewmodel.AuthViewModel
 import com.example.tugasakhirpam.viewmodel.FoundItemViewModel
 import com.example.tugasakhirpam.viewmodel.LostItemViewModel
+import com.google.android.libraries.identity.googleid.Claim
 
 @Composable
 fun AppNavigation(
@@ -199,9 +200,9 @@ fun MainNavHost(
                         popUpTo(Screen.FoundItemForm.route) { inclusive = true }
                     }
                 },
-                onClaimClick = {
-                    navController.navigate(Screen.Claim.route)
-                }
+//                onClaimClick = {
+//                    navController.navigate(Screen.Claim.route)
+//                }
             )
         }
 

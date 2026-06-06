@@ -22,7 +22,7 @@ sealed class Screen(val route: String) {
     object LostItemDetail : Screen("lost_item_detail/{itemId}") {
         fun createRoute(itemId: String) = "lost_item_detail/$itemId"
     }
-}
+
 
     /*
      * Route untuk halaman klaim barang.

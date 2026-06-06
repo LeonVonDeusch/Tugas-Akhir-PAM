@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DashboardScreen(
     onLogoutClick: () -> Unit,
-    onClaimClick: () -> Unit // Kita tambahkan parameter aksi untuk klik tombol klaim
+//    onClaimClick: () -> Unit, // Kita tambahkan parameter aksi untuk klik tombol klaim
     onFoundItemsClick: () -> Unit = {},
     onNavigateToLostItems: () -> Unit = {}
 ) {
@@ -39,14 +39,18 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // TOMBOL BARU: Untuk menuju ke halaman Klaim Barang
-        Button(
-            onClick = onClaimClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text("Ajukan Klaim Barang")
+//        Button(
+//            onClick = onClaimClick,
+//            modifier = Modifier.fillMaxWidth(),
+//            colors = ButtonDefaults.buttonColors(
+//                containerColor = MaterialTheme.colorScheme.primary
+//            )
+//        ) {
+//            Text("Ajukan Klaim Barang")
+//        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         // Tombol ke fitur Barang Hilang (Denta)
         Button(
             onClick = onNavigateToLostItems,
@@ -57,10 +61,6 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Tombol Logout bawaan
-        OutlinedButton(
-            onClick = onLogoutClick,
-            modifier = Modifier.fillMaxWidth()
         // Tombol ke fitur Barang Ditemukan (Alvin)
         Button(
             onClick = onFoundItemsClick,
@@ -79,5 +79,4 @@ fun DashboardScreen(
             Text("Logout")
         }
     }
-}
 }
