@@ -22,15 +22,10 @@ object SupabaseClientProvider {
         install(Auth)
 
         /*
-         * install(Postgrest) digunakan untuk operasi database:
-         * select, insert, update, delete pada tabel Supabase.
+         * install(Postgrest) untuk operasi database (select, insert, update, delete).
+         * install(Storage) untuk upload/download file gambar ke Supabase Storage.
          */
         install(Postgrest)
-
-        /*
-         * install(Storage) digunakan untuk upload dan download file
-         * ke Supabase Storage bucket (foto barang, foto profil, dll).
-         */
         install(Storage)
     }
 }

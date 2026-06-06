@@ -1,6 +1,5 @@
 package com.example.tugasakhirpam.navigation
 
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -10,8 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.*
 import androidx.navigation.NavType
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.tugasakhirpam.ui.screens.FoundItemDetailScreen
 import com.example.tugasakhirpam.ui.screens.FoundItemFormScreen
@@ -19,21 +18,22 @@ import com.example.tugasakhirpam.ui.screens.FoundItemListScreen
 import com.example.tugasakhirpam.ui.theme.DashboardScreen
 import com.example.tugasakhirpam.ui.theme.LoginScreen
 import com.example.tugasakhirpam.ui.theme.RegisterScreen
+import com.example.tugasakhirpam.ui.theme.LostItemDetailScreen
+import com.example.tugasakhirpam.ui.theme.LostItemFormScreen
+import com.example.tugasakhirpam.ui.theme.LostItemListScreen
 import com.example.tugasakhirpam.viewmodel.AuthCheckState
 import com.example.tugasakhirpam.viewmodel.AuthUiState
 import com.example.tugasakhirpam.viewmodel.AuthViewModel
 import com.example.tugasakhirpam.viewmodel.FoundItemViewModel
+import com.example.tugasakhirpam.viewmodel.LostItemViewModel
 
 @Composable
 fun AppNavigation(
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(),
+    lostItemViewModel: LostItemViewModel = viewModel()
 ) {
     val authCheckState = authViewModel.authCheckState.collectAsStateWithLifecycle()
 
-    /*
-     * Saat aplikasi baru dibuka, cek dulu apakah user masih login.
-     * Jangan langsung tampilkan LoginScreen.
-     */
     when (authCheckState.value) {
         is AuthCheckState.Checking -> {
             Box(
@@ -43,27 +43,27 @@ fun AppNavigation(
                 CircularProgressIndicator()
             }
         }
-
         is AuthCheckState.Authenticated -> {
             MainNavHost(
                 authViewModel = authViewModel,
+                lostItemViewModel = lostItemViewModel,
                 startDestination = Screen.Dashboard.route
             )
         }
-
         is AuthCheckState.NotAuthenticated -> {
             MainNavHost(
                 authViewModel = authViewModel,
+                lostItemViewModel = lostItemViewModel,
                 startDestination = Screen.Login.route
             )
         }
     }
 }
 
-
 @Composable
 fun MainNavHost(
     authViewModel: AuthViewModel,
+    lostItemViewModel: LostItemViewModel,
     startDestination: String
 ) {
     val navController = rememberNavController()
@@ -78,15 +78,11 @@ fun MainNavHost(
      */
     val foundItemViewModel: FoundItemViewModel = viewModel()
 
-
     LaunchedEffect(uiState.value) {
         if (uiState.value is AuthUiState.Success) {
             navController.navigate(Screen.Dashboard.route) {
-                popUpTo(Screen.Login.route) {
-                    inclusive = true
-                }
+                popUpTo(Screen.Login.route) { inclusive = true }
             }
-
             authViewModel.resetState()
         }
     }
@@ -102,12 +98,8 @@ fun MainNavHost(
                 uiState = uiState.value,
                 onEmailChange = authViewModel::onEmailChange,
                 onPasswordChange = authViewModel::onPasswordChange,
-                onLoginClick = {
-                    authViewModel.login()
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Screen.Register.route)
-                }
+                onLoginClick = { authViewModel.login() },
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) }
             )
         }
 
@@ -118,12 +110,8 @@ fun MainNavHost(
                 uiState = uiState.value,
                 onEmailChange = authViewModel::onEmailChange,
                 onPasswordChange = authViewModel::onPasswordChange,
-                onRegisterClick = {
-                    authViewModel.register()
-                },
-                onNavigateToLogin = {
-                    navController.popBackStack()
-                }
+                onRegisterClick = { authViewModel.register() },
+                onNavigateToLogin = { navController.popBackStack() }
             )
         }
 
@@ -131,20 +119,20 @@ fun MainNavHost(
             DashboardScreen(
                 onLogoutClick = {
                     authViewModel.logout()
-
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Dashboard.route) {
-                            inclusive = true
-                        }
+                        popUpTo(Screen.Dashboard.route) { inclusive = true }
                     }
                 },
                 onFoundItemsClick = {
                     navController.navigate(Screen.FoundItemList.route)
+                },
+                onNavigateToLostItems = {
+                    navController.navigate(Screen.LostItemList.route)
                 }
             )
         }
 
-        // --- Barang Ditemukan: List ---
+        // --- Barang Ditemukan (Found Items - Alvin): List ---
         composable(Screen.FoundItemList.route) {
             val listState = foundItemViewModel.listState.collectAsStateWithLifecycle()
 
@@ -209,6 +197,35 @@ fun MainNavHost(
                         popUpTo(Screen.FoundItemForm.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // --- Barang Hilang (Lost Items - Denta): List ---
+        composable(Screen.LostItemList.route) {
+            LostItemListScreen(
+                viewModel = lostItemViewModel,
+                onNavigateToAddReport = { navController.navigate(Screen.LostItemForm.route) },
+                onNavigateToDetail = { itemId -> navController.navigate(Screen.LostItemDetail.createRoute(itemId)) },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.LostItemForm.route) {
+            LostItemFormScreen(
+                viewModel = lostItemViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.LostItemDetail.route,
+            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            LostItemDetailScreen(
+                itemId = itemId,
+                viewModel = lostItemViewModel,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

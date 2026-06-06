@@ -10,7 +10,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DashboardScreen(
     onLogoutClick: () -> Unit,
-    onFoundItemsClick: () -> Unit = {}
+    onFoundItemsClick: () -> Unit = {},
+    onNavigateToLostItems: () -> Unit = {}
 ) {
     /*
      * Dashboard sederhana yang muncul setelah user berhasil login.
@@ -36,21 +37,32 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Tombol ke fitur Barang Hilang (Denta)
         Button(
-            onClick = onFoundItemsClick,
+            onClick = onNavigateToLostItems,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Barang Ditemukan")
+            Text("Lihat Laporan Barang Hilang")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedButton(
-            onClick = onLogoutClick,
+        // Tombol ke fitur Barang Ditemukan (Alvin)
+        Button(
+            onClick = onFoundItemsClick,
             modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Lihat Laporan Barang Ditemukan")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
         ) {
             Text("Logout")
         }
     }
 }
-
