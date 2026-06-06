@@ -19,6 +19,12 @@ class Comment extends Model
         'user_id',
         'item_id',
         'item_type',
-        'content'
+        'content',
+        'parent_id' // Optional, untuk komentar balasan
     ];
+
+    public function parent()
+    {
+        return $this->belongsTo(Comment::class, 'parent_id');
+    }
 }

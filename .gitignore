@@ -1,0 +1,11 @@
+# Claude Code — worktrees dan memory bersifat lokal, jangan di-commit
+.claude/worktrees/
+.claude/memory/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

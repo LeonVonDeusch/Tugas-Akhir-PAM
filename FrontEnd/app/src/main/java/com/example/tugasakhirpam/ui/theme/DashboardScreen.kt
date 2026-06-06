@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.dp
 fun DashboardScreen(
     onLogoutClick: () -> Unit,
     onClaimClick: () -> Unit // Kita tambahkan parameter aksi untuk klik tombol klaim
+    onFoundItemsClick: () -> Unit = {},
+    onNavigateToLostItems: () -> Unit = {}
 ) {
     /*
      * Dashboard setelah user berhasil login.
@@ -45,6 +47,12 @@ fun DashboardScreen(
             )
         ) {
             Text("Ajukan Klaim Barang")
+        // Tombol ke fitur Barang Hilang (Denta)
+        Button(
+            onClick = onNavigateToLostItems,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Lihat Laporan Barang Hilang")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -53,8 +61,23 @@ fun DashboardScreen(
         OutlinedButton(
             onClick = onLogoutClick,
             modifier = Modifier.fillMaxWidth()
+        // Tombol ke fitur Barang Ditemukan (Alvin)
+        Button(
+            onClick = onFoundItemsClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Lihat Laporan Barang Ditemukan")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
         ) {
             Text("Logout")
         }
     }
+}
 }

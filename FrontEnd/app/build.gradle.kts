@@ -75,3 +75,25 @@ dependencies {
     // Ktor Android Client
     implementation("io.ktor:ktor-client-android:3.0.3")
 }
+    // Supabase Postgrest (operasi database)
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+
+    // Supabase Storage (upload & download gambar)
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+
+    // Ktor Android Client
+    implementation("io.ktor:ktor-client-android:3.0.3")
+
+    // Coil (menampilkan gambar dari URL di Compose)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // --- Dependency dari fitur anggota lain (dari main) ---
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // RecyclerView, Material, CardView
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.cardview:cardview:1.0.0")
+}
