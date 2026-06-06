@@ -20,6 +20,11 @@ object SupabaseClientProvider {
          * seperti login, register, logout, dan membaca session user.
          */
         install(Auth)
+
+        /*
+         * install(Postgrest) untuk operasi database (select, insert, update, delete).
+         * install(Storage) untuk upload/download file gambar ke Supabase Storage.
+         */
         install(Postgrest)
         install(Storage)
     }

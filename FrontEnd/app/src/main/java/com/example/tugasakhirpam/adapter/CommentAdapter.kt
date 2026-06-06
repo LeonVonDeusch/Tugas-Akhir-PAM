@@ -22,6 +22,8 @@ class CommentAdapter(
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvAvatar: TextView? = view.findViewById(R.id.tvAvatar)
+        val tvUserEmail: TextView? = view.findViewById(R.id.tvUserEmail)
         val tvContent: TextView = view.findViewById(R.id.tvContent)
         val tvDate: TextView = view.findViewById(R.id.tvDate)
         val btnReply: ImageButton = view.findViewById(R.id.btnReply)
@@ -66,8 +68,12 @@ class CommentAdapter(
         }
         holder.itemView.layoutParams = params
 
+        // Tampilkan email pembuat komentar (seperti nama akun di YouTube).
+        val email = comment.user_email ?: "Anonim"
+        holder.tvUserEmail?.text = email
+        holder.tvAvatar?.text = email.trim().firstOrNull()?.uppercase() ?: "?"
         holder.tvContent.text = comment.content
-        holder.tvDate.text = comment.created_at ?: ""
+        holder.tvDate.text = formatDate(comment.created_at)
 
         holder.btnReply.setOnClickListener { onReplyClick(comment) }
         holder.btnEdit.setOnClickListener { onEditClick(comment) }
@@ -88,4 +94,19 @@ class CommentAdapter(
 
 fun Int.dpToPx(context: android.content.Context): Int {
     return (this * context.resources.displayMetrics.density).toInt()
+}
+
+/**
+ * Mengubah timestamp ISO dari Supabase ("2026-06-06T11:23:47.569791+00:00")
+ * menjadi format ringkas "2026-06-06 11:23".
+ */
+private fun formatDate(raw: String?): String {
+    if (raw.isNullOrBlank()) return ""
+    return try {
+        val datePart = raw.substringBefore("T")
+        val timePart = raw.substringAfter("T").take(5)
+        "$datePart $timePart"
+    } catch (e: Exception) {
+        raw
+    }
 }

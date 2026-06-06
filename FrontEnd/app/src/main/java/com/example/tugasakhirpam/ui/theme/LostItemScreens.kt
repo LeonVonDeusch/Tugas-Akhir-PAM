@@ -24,6 +24,9 @@ import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.filled.ArrowBack
+import com.example.tugasakhirpam.CommentActivity
+import com.example.tugasakhirpam.data.SupabaseClientProvider
+import io.github.jan.supabase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,6 +173,8 @@ fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigat
             is LostItemUiState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(padding))
             is LostItemUiState.SuccessDetail -> {
                 val item = (uiState as LostItemUiState.SuccessDetail).item
+                val context = LocalContext.current
+                val currentUserId = SupabaseClientProvider.client.auth.currentUserOrNull()?.id ?: ""
                 Column(
                     modifier = Modifier.padding(padding).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -216,6 +221,27 @@ fun LostItemDetailScreen(itemId: String, viewModel: LostItemViewModel, onNavigat
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Tombol membuka halaman komentar/diskusi untuk barang ini
+                    OutlinedButton(
+                        onClick = {
+                            item.id?.let { id ->
+                                context.startActivity(
+                                    CommentActivity.newIntent(
+                                        context = context,
+                                        itemType = "lost",
+                                        itemId = id,
+                                        userId = currentUserId
+                                    )
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Lihat Komentar / Diskusi")
                     }
                 }
             }

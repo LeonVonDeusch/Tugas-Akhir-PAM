@@ -10,7 +10,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DashboardScreen(
     onLogoutClick: () -> Unit,
-    onNavigateToLostItems: () -> Unit
+    onFoundItemsClick: () -> Unit = {},
+    onNavigateToLostItems: () -> Unit = {}
 ) {
     /*
      * Dashboard sederhana yang muncul setelah user berhasil login.
@@ -36,11 +37,22 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Tombol ke fitur Barang Hilang (Denta)
         Button(
             onClick = onNavigateToLostItems,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Lihat Laporan Barang Hilang")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Tombol ke fitur Barang Ditemukan (Alvin)
+        Button(
+            onClick = onFoundItemsClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Lihat Laporan Barang Ditemukan")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -54,4 +66,3 @@ fun DashboardScreen(
         }
     }
 }
-
