@@ -22,11 +22,14 @@ import com.example.tugasakhirpam.ui.theme.RegisterScreen
 import com.example.tugasakhirpam.ui.theme.LostItemDetailScreen
 import com.example.tugasakhirpam.ui.theme.LostItemFormScreen
 import com.example.tugasakhirpam.ui.theme.LostItemListScreen
+import com.example.tugasakhirpam.ui.screens.CommentScreen
+import com.example.tugasakhirpam.viewmodel.CommentViewModel
 import com.example.tugasakhirpam.viewmodel.AuthCheckState
 import com.example.tugasakhirpam.viewmodel.AuthUiState
 import com.example.tugasakhirpam.viewmodel.AuthViewModel
 import com.example.tugasakhirpam.viewmodel.FoundItemViewModel
 import com.example.tugasakhirpam.viewmodel.LostItemViewModel
+
 
 @Composable
 fun AppNavigation(
@@ -78,6 +81,7 @@ fun MainNavHost(
      * sama dan state tidak hilang saat navigasi antar screen found items.
      */
     val foundItemViewModel: FoundItemViewModel = viewModel()
+    val commentViewModel: CommentViewModel = viewModel()
 
     LaunchedEffect(uiState.value) {
         if (uiState.value is AuthUiState.Success) {
@@ -164,7 +168,10 @@ fun MainNavHost(
                 currentUserId = foundItemViewModel.currentUserId,
                 onBackClick = { navController.popBackStack() },
                 onUpdateStatus = { id, status -> foundItemViewModel.updateStatus(id, status) },
-                onResetUpdateStatus = { foundItemViewModel.resetUpdateStatus() }
+                onResetUpdateStatus = { foundItemViewModel.resetUpdateStatus() },
+                onOpenComment = { itemType, itemId, userId ->   // ← ini yang ditambah
+                    navController.navigate(Screen.Comment.createRoute(itemType, itemId, userId))
+                }
             )
         }
 
@@ -241,6 +248,26 @@ fun MainNavHost(
                 viewModel = lostItemViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onClaimClick = { id -> navController.navigate(Screen.Claim.createRoute(id)) }
+            )
+        }
+
+        composable(
+            route = Screen.Comment.route,
+            arguments = listOf(
+                navArgument("itemType") { type = NavType.StringType },
+                navArgument("itemId") { type = NavType.StringType },
+                navArgument("userId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val itemType = backStackEntry.arguments?.getString("itemType") ?: "found"
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            CommentScreen(
+                itemType = itemType,
+                itemId = itemId,
+                userId = userId,
+                onBackClick = { navController.popBackStack() },
+                commentViewModel = commentViewModel
             )
         }
     }

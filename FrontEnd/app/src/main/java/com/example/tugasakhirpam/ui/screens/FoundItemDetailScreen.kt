@@ -28,7 +28,8 @@ fun FoundItemDetailScreen(
     currentUserId: String,
     onBackClick: () -> Unit,
     onUpdateStatus: (id: String, status: String) -> Unit,
-    onResetUpdateStatus: () -> Unit
+    onResetUpdateStatus: () -> Unit,
+    onOpenComment: (itemType: String, itemId: String, userId: String) -> Unit
 ) {
     // Tampilkan snackbar saat update status berhasil
     val snackbarHostState = remember { SnackbarHostState() }
@@ -130,14 +131,7 @@ fun FoundItemDetailScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
                             onClick = {
-                                context.startActivity(
-                                    CommentActivity.newIntent(
-                                        context = context,
-                                        itemType = "found",
-                                        itemId = item.id,
-                                        userId = currentUserId
-                                    )
-                                )
+                                onOpenComment("found", item.id, currentUserId)
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {

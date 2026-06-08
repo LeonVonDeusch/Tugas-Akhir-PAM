@@ -30,4 +30,10 @@ sealed class Screen(val route: String) {
     object Claim : Screen("claim/{lostItemId}") {
         fun createRoute(lostItemId: String) = "claim/$lostItemId"
     }
+
+    // Tambahkan di dalam sealed class Screen
+    object Comment : Screen("comment/{itemType}/{itemId}/{userId}") {
+        fun createRoute(itemType: String, itemId: String, userId: String) =
+            "comment/$itemType/$itemId/$userId"
+    }
 }
